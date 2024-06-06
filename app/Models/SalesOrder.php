@@ -10,4 +10,8 @@ class SalesOrder extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function orderLine(){
+        return $this->hasMany(OrderLine::class);
+    }
 }
