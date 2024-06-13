@@ -8,6 +8,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::resource('salesOrder', SalesOrderController::class, [
-    'except' => ['create','edit']
+Route::middleware('auth:sanctum')->resource('salesOrder', SalesOrderController::class, [
+    'except' => ['create', 'edit']
 ]);
