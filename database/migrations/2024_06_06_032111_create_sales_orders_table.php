@@ -19,7 +19,7 @@ return new class extends Migration
             $table->double('amount_untaxed'); //
             $table->timestamp('create_date')->default(now()); //
             $table->string('delivery_status'); // -
-            $table->string('internal_note_display'); // -
+            $table->text('internal_note_display'); // -
             $table->string('name')->unique(); //
             $table->string('partner_id_contact_address'); //
             $table->string('partner_id_display_name'); //
