@@ -38,9 +38,33 @@ class SalesOrderController extends Controller
         $orderData = ['amount_to_invoice' => $request['amount_to_invoice'], 'amount_total'  => $request['amount_total'], 'amount_untaxed' => $request['amount_untaxed'], 'create_date' => $request['create_date'], 'delivery_status' => $request['delivery_status'], 'internal_note_display' => $request['internal_note_display'], 'name' => $request['name'], 'partner_id_contact_address' => $request['partner_id_contact_address'], 'partner_id_display_name' => $request['partner_id_display_name'], 'partner_id_phone' => $request['partner_id_phone'], 'state' => $request['state'], 'x_studio_commission_paid' => $request['x_studio_commission_paid'], 'x_studio_invoice_payment_status' => $request['x_studio_invoice_payment_status'], 'x_studio_payment_type' => $request['x_studio_payment_type'], 'x_studio_referrer_processed' => $request['x_studio_referrer_processed'], 'x_studio_sales_rep_1' => $request['x_studio_sales_rep_1'], 'x_studio_sales_source' => $request['x_studio_sales_source']];
         $existingOrder = SalesOrder::where('name', $orderData['name'])->first();
 
+        //SalesOrder
         if ($existingOrder) {
             // Name already exists, handle update scenario
-            $existingOrder->update(Arr::only($orderData, $allowedSalesOrder));
+            // $existingOrder->update(Arr::only($orderData, $allowedSalesOrder));
+
+            if (!empty($request['order_line'])) {
+
+                foreach ($request['order_line'] as $orderLineData) {
+                    // Set the sales_order_id based on the parent SalesOrder
+                    // $existingOrderLine =  //OrderLine::find($orderLineData['id']);
+                    //     $orderLineData['sales_order_id'] = $existingOrder->id;
+
+                    // $existingOrderLine = OrderLine::where('sales_order_id', $orderLineData->id);
+
+                    $existingOrderLine = OrderLine::where('sales_order_id', $existingOrder->id)
+                        ->where('product', $orderLineData['product'])
+                        ->first();
+
+                    if ($existingOrder) {
+                        $existingOrderLine->update(Arr::only($orderLineData, $allowedOrderLine));
+                    } else {
+                        OrderLine::create(Arr::only($orderLineData, $allowedOrderLine));
+                    }
+                }
+            }
+
+
             return response()->json(['message' => 'Sales order updated successfully'], 200); // OK
         } else {
             // New Sales Order, create a new instance
@@ -54,44 +78,6 @@ class SalesOrderController extends Controller
                     $orderLineData['sales_order_id'] = $salesOrder->id;
 
                     // Create and save a new OrderLine instance
-                    OrderLine::create(Arr::only($orderLineData, $allowedOrderLine));
-                }
-            }
-        }
-
-        if (!empty($request['order_line'])) {
-            $existingOrderLineIds = [];
-            foreach ($request['order_line'] as $orderLineData) {
-                if (isset($orderLineData['id'])) {
-                    $existingOrderLineIds[] = $orderLineData['id'];
-                }
-            }
-
-            // Delete entries not in the request
-            $existingOrderLineIdsFromDB = OrderLine::where('sales_order_id', $salesOrder->id)
-                ->pluck('id')
-                ->toArray();
-
-            $deleteOrderLineIds = array_diff($existingOrderLineIdsFromDB, $existingOrderLineIds);
-
-            if (!empty($deleteOrderLineIds)) {
-                OrderLine::whereIn('id', $deleteOrderLineIds)->delete();
-            }
-
-            // Update existing entries
-            foreach ($request['order_line'] as $orderLineData) {
-                if (isset($orderLineData['id'])) {
-                    $existingOrderLine = OrderLine::find($orderLineData['id']);
-                    if ($existingOrderLine) {
-                        $existingOrderLine->update(Arr::only($orderLineData, $allowedOrderLine));
-                    }
-                }
-            }
-
-            // Create new entries (without 'id')
-            foreach ($request['order_line'] as $orderLineData) {
-                if (!isset($orderLineData['id'])) {
-                    $orderLineData['sales_order_id'] = $salesOrder->id;
                     OrderLine::create(Arr::only($orderLineData, $allowedOrderLine));
                 }
             }
