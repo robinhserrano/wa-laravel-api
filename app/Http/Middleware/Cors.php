@@ -11,17 +11,21 @@ class Cors
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return \Illuminate\Http\Response
+     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|null)  $next
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|null
      */
     public function handle(Request $request, Closure $next)
     {
-        $response = $next($request);
+        $allowedOrigins = ['http://54.227.19.30', '*']; // Replace with your allowed origins
 
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PUT, DELETE');
-        $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token, Origin, Authorization');
+        if (in_array($request->server('HTTP_ORIGIN'), $allowedOrigins)) {
+            $response = $next($request);
+            $response->header('Access-Control-Allow-Origin', $request->server('HTTP_ORIGIN'));
+            $response->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Adjust allowed methods
+            $response->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With'); // Adjust allowed headers
+            return $response;
+        }
 
-        return $response;
+        return abort(403); // Or return a more specific error response
     }
 }
