@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SalesOrderController;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,3 +28,5 @@ Route::post('/sanctum/token', function (Request $request) {
  
     return $user->createToken($request->password)->plainTextToken;
 });
+
+Route::post('/bulkStore', [SalesOrderController::class, 'bulkStore']);
