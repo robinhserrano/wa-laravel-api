@@ -14,23 +14,23 @@ return new class extends Migration
         Schema::create('sales_orders', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->double('amount_to_invoice'); //
-            $table->double('amount_total'); // 
-            $table->double('amount_untaxed'); //
+            $table->double('amount_to_invoice')->nullable(); //
+            $table->double('amount_total')->nullable(); // 
+            $table->double('amount_untaxed')->nullable(); //
             $table->timestamp('create_date')->default(now()); //
-            $table->string('delivery_status'); // -
-            $table->text('internal_note_display'); // -
+            $table->string('delivery_status')->nullable(); // -
+            $table->text('internal_note_display')->nullable(); // -
             $table->string('name')->unique(); //
-            $table->string('partner_id_contact_address'); //
-            $table->string('partner_id_display_name'); //
-            $table->string('partner_id_phone'); //
-            $table->string('state'); // -
-            $table->boolean('x_studio_commission_paid'); //
-            $table->string('x_studio_invoice_payment_status'); //-
-            $table->string('x_studio_payment_type'); //
-            $table->boolean('x_studio_referrer_processed'); //
-            $table->string('x_studio_sales_rep_1'); //
-            $table->string('x_studio_sales_source'); //
+            $table->string('partner_id_contact_address')->nullable(); //
+            $table->string('partner_id_display_name')->nullable(); //
+            $table->string('partner_id_phone')->nullable(); //
+            $table->string('state')->nullable(); // -
+            $table->boolean('x_studio_commission_paid')->nullable(); //
+            $table->string('x_studio_invoice_payment_status')->nullable(); //-
+            $table->string('x_studio_payment_type')->nullable(); //
+            $table->boolean('x_studio_referrer_processed')->nullable(); //
+            $table->string('x_studio_sales_rep_1')->nullable(); //
+            $table->string('x_studio_sales_source')->nullable(); //
         });
     }
 

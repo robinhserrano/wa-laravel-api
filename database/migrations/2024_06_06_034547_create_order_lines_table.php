@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('order_lines', function (Blueprint $table) {
             $table->id();
             $table->foreignId('sales_order_id')->constrained('sales_orders')->onDelete('cascade');
-            $table->string('product');
+            $table->string('product')->nullable();
             $table->text('description')->nullable();
-            $table->integer('quantity');
-            $table->double('unit_price');
-            $table->double('tax_excl');
-            $table->double('disc');
+            $table->integer('quantity')->nullable();
+            $table->double('unit_price')->nullable();
+            $table->double('tax_excl')->nullable();
+            $table->double('disc')->nullable();
             $table->string('taxes')->nullable();
-            $table->boolean('delivered');
-            $table->boolean('invoiced');
+            $table->boolean('delivered')->nullable();
+            $table->boolean('invoiced')->nullable();
             $table->timestamps();
         });
     }
