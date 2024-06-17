@@ -27,7 +27,7 @@ Route::post('/sanctum/token', function (Request $request) {
     }
  
     return $user->createToken($request->password)->plainTextToken;
-})->middleware('cors');;
+});
 
 Route::middleware('auth:sanctum')->resource('salesOrder', SalesOrderController::class, [
     'except' => ['create', 'edit']
