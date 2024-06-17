@@ -17,20 +17,20 @@ Route::post('/sanctum/token', function (Request $request) {
         'password' => 'required',
         // 'device_name' => 'required',
     ]);
- 
+
     $user = User::where('email', $request->email)->first();
- 
-    if (! $user || ! Hash::check($request->password, $user->password)) {
+
+    if (!$user || !Hash::check($request->password, $user->password)) {
         throw ValidationException::withMessages([
             'email' => ['The provided credentials are incorrect.'],
         ]);
     }
- 
+
     return $user->createToken($request->password)->plainTextToken;
-});
+})->middleware('cors');;
 
 Route::middleware('auth:sanctum')->resource('salesOrder', SalesOrderController::class, [
     'except' => ['create', 'edit']
-]);
+])->middleware('cors');
 
-Route::post('/bulkStore', [SalesOrderController::class, 'bulkStore']);
+Route::post('/bulkStore', [SalesOrderController::class, 'bulkStore'])->middleware('cors');;
