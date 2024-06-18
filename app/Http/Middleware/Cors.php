@@ -16,23 +16,23 @@ class Cors
      */
     public function handle(Request $request, Closure $next)
     {
-        $allowedOrigins = ['*']; // Adjust this to your allowed origins
+        // $allowedOrigins = ['*']; // Adjust this to your allowed origins
 
-        if (in_array($request->header('Origin'), $allowedOrigins)) {
-            return $next($request)
-                ->header('Access-Control-Allow-Origin', $request->header('Origin'))
-                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        }
+        // if (in_array($request->header('Origin'), $allowedOrigins)) {
+        //     return $next($request)
+        //         ->header('Access-Control-Allow-Origin', $request->header('Origin'))
+        //         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        //         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        // }
 
-        // Handle the preflight OPTIONS request
-        if ($request->isMethod('OPTIONS')) {
-            return response()->json('', 204)
-                ->header('Access-Control-Allow-Origin', $request->header('Origin'))
-                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-        }
+        // // Handle the preflight OPTIONS request
+        // if ($request->isMethod('OPTIONS')) {
+        //     return response()->json('', 204)
+        //         ->header('Access-Control-Allow-Origin', $request->header('Origin'))
+        //         ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        //         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        // }
 
-        return abort(403, 'Unauthorized');
+        // return abort(403, 'Unauthorized');
     }
 }
