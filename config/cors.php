@@ -4,74 +4,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Allowed Origins
+    | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
     |
-    | List the origins that are allowed access to your resources.
-    | You can use wildcards (*) to allow all origins if needed.
-    | However, it's safer to restrict access to specific origins.
+    | Here you may configure your settings for cross-origin resource sharing
+    | or "CORS". This determines what cross-origin operations may execute
+    | in web browsers. You are free to adjust these settings as needed.
+    |
+    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
     */
 
-    'allowed_origins' => [
-        '*', 
-        // Replace with your Flutter Web app origin (e.g., http://localhost:your_flutter_port)
-    ],
+    'paths' => ['*', 'api/*', 'sanctum/csrf-cookie'],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Allowed Methods
-    |--------------------------------------------------------------------------
-    |
-    | List the methods that are allowed to access your resources.
-    |
-    */
+    'allowed_methods' => ['*'],
 
-    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    'allowed_origins' => ['*'],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Allowed Headers
-    |--------------------------------------------------------------------------
-    |
-    | List the headers that are allowed to be sent with the request.
-    |
-    */
+    'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['Content-Type', 'X-Auth-Token', 'Authorization'],
+    'allowed_headers' => ['*'],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Exposed Headers
-    |--------------------------------------------------------------------------
-    |
-    | List the headers that are exposed to the frontend client.
-    |
-    */
+    'exposed_headers' => [],
 
-    'exposed_headers' => ['Authorization'],
+    'max_age' => 0,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Supports Credentials
-    |--------------------------------------------------------------------------
-    |
-    | If true, allows CORS requests to include cookies.
-    |
-    */
-
-    'supports_credentials' => true,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Max Age
-    |--------------------------------------------------------------------------
-    |
-    | Indicates how long (in seconds) the results of a preflight request can be cached.
-    |
-    */
-
-    'max_age' => 3600,
+    'supports_credentials' => false,
 
 ];
-
