@@ -18,6 +18,7 @@ class Cors
     {
         $allowedOrigins = ['*']; // Adjust this to your allowed origins
 
+        // Check if the request origin is in the allowed list
         if (in_array($request->header('Origin'), $allowedOrigins)) {
             return $next($request)
                 ->header('Access-Control-Allow-Origin', $request->header('Origin'))
@@ -33,6 +34,7 @@ class Cors
                 ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         }
 
-        return abort(403, 'Unauthorized');
+        // Continue with the request
+        return $next($request);
     }
 }
