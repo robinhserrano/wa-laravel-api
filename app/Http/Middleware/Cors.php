@@ -16,7 +16,7 @@ class Cors
      */
     public function handle(Request $request, Closure $next)
     {
-        $allowedOrigins = ['http://54.227.19.30', '*']; // Replace with your allowed origins
+        $allowedOrigins = ['*']; // Replace with your allowed origins
 
         if (in_array($request->server('HTTP_ORIGIN'), $allowedOrigins)) {
             $response = $next($request);
