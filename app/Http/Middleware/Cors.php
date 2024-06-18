@@ -11,21 +11,28 @@ class Cors
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|null)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|null
+     * @param  \Closure  $next
+     * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
-        $allowedOrigins = ['*']; // Replace with your allowed origins
+        $allowedOrigins = ['*']; // Adjust this to your allowed origins
 
-        if (in_array($request->server('HTTP_ORIGIN'), $allowedOrigins)) {
-            $response = $next($request);
-            $response->header('Access-Control-Allow-Origin', $request->server('HTTP_ORIGIN'));
-            $response->header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Adjust allowed methods
-            $response->header('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With'); // Adjust allowed headers
-            return $response;
+        if (in_array($request->header('Origin'), $allowedOrigins)) {
+            return $next($request)
+                ->header('Access-Control-Allow-Origin', $request->header('Origin'))
+                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         }
 
-        return abort(403); // Or return a more specific error response
+        // Handle the preflight OPTIONS request
+        if ($request->isMethod('OPTIONS')) {
+            return response()->json('', 204)
+                ->header('Access-Control-Allow-Origin', $request->header('Origin'))
+                ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+                ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        }
+
+        return abort(403, 'Unauthorized');
     }
 }
