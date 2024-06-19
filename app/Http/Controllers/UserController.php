@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -29,7 +31,23 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $allowedData = ['name', 'email', 'password', 'commission_split', 'access_level'];
+
+        try {
+            $validatedData = $request->validate([
+                'name' => 'required|max:255',
+                'email' => 'required|email|unique:users|max:255',
+                'password' => 'required|min:6',
+                // Add validation rules for other fields as needed
+            ]);
+            User::create(Arr::only($validatedData, $allowedData));
+            return response()->json(['message' => 'User created successfully'], 200); // Created
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->validator->errors()->toArray(),
+            ], 422); // Unprocessable Entity status code
+        }
     }
 
     /**
