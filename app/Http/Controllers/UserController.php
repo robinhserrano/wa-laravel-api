@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
+use Exception;
 
 class UserController extends Controller
 {
@@ -70,9 +71,34 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        //
+        // Find the user by ID
+        $user = User::findOrFail($request['id']);
+
+        $allowedData = ['name', 'email', 'commission_split', 'access_level']; // Adjust as needed
+
+        try {
+            // Define validation rules, excluding unique email for existing user
+            $validatedData = $request->validate([
+                'name' => 'required|max:255',
+                'email' => 'required|email|max:255', // Remove unique rule for existing user
+                'password' => 'nullable|min:6', // Allow optional password update
+                // Add validation rules for other fields as needed
+            ]);
+
+            // Update only allowed fields
+            $user->update(Arr::only($validatedData, $allowedData));
+
+            return response()->json(['message' => 'User updated successfully'], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->validator->errors()->toArray(),
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
     }
 
     /**
