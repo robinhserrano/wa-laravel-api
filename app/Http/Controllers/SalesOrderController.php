@@ -15,7 +15,7 @@ class SalesOrderController extends Controller
      */
     public function index()
     {
-        $salesOrders = SalesOrder::with('orderLine')->get();
+        $salesOrders = SalesOrder::with('user', 'orderLine')->get();
         return $salesOrders;
     }
 
@@ -91,7 +91,7 @@ class SalesOrderController extends Controller
      */
     public function show(string $id)
     {
-        $salesOrder = SalesOrder::with('orderLine')->findOrFail($id);
+        $salesOrder = SalesOrder::with('user', 'orderLine')->findOrFail($id);
         return $salesOrder;
     }
 
