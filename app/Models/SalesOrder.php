@@ -18,7 +18,8 @@ class SalesOrder extends Model
 
     public function user()
     {
-        $salesRepName = $this->x_studio_sales_rep_1;
-        return $this->hasOne(User::class, 'name', 'x_studio_sales_rep_1')->where('name', $salesRepName);
+        return $this->belongsTo(User::class, 'x_studio_sales_rep_1', 'name');
+        //$salesRepName = $this->x_studio_sales_rep_1;
+        //return $this->hasOne(User::class, 'name', 'x_studio_sales_rep_1')->where('name', $salesRepName);
     }
 }
