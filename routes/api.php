@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->resource('salesOrder', SalesOrderController::
     'except' => ['create', 'edit']
 ]);
 
-Route::middleware('auth:sanctum')->resource('user', UserController::class, [
+Route::middleware('auth:sanctum')->resource('users', UserController::class, [
     'except' => ['create', 'edit']
 ]);
 
