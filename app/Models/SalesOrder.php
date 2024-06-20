@@ -18,8 +18,7 @@ class SalesOrder extends Model
 
     public function user()
     {
-        // No foreign key, filter by name (one-to-one relationship)
         $salesRepName = $this->x_studio_sales_rep_1;
-        return $this->hasOne(User::class)->where('name', $salesRepName);
+        return $this->hasOne(User::class, 'name', 'x_studio_sales_rep_1')->where('name', $salesRepName);
     }
 }
