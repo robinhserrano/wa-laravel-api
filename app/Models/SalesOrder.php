@@ -11,7 +11,14 @@ class SalesOrder extends Model
 
     protected $guarded = [];
 
-    public function orderLine(){
+    public function orderLine()
+    {
         return $this->hasMany(OrderLine::class);
+    }
+
+    public function user()
+    {
+        // Define the relationship with the User model
+        return $this->belongsTo(User::class, 'x_studio_sales_rep_1', 'id');
     }
 }

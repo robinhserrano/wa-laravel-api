@@ -113,6 +113,12 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            return response()->json(['message' => 'Deleted sales order successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Sales order not found'], 404);
+        }
     }
 }
