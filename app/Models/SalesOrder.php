@@ -19,6 +19,9 @@ class SalesOrder extends Model
     public function user()
     {
         // Define the relationship with the User model
-        return $this->belongsTo(User::class, 'x_studio_sales_rep_1', 'id');
+        return $this->belongsTo(User::class, 'x_studio_sales_rep_1', 'id')
+            ->whereHas('user', function ($query) use ($this) {
+                $query->where('name', 'like', "%" . strtolower($this->x_studio_sales_rep_1) . "%"); // Case-insensitive match
+            });
     }
 }
