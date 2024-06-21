@@ -131,6 +131,8 @@ class SalesOrderController extends Controller
                 'x_studio_referrer_processed' => '',
                 'x_studio_sales_rep_1' => '',
                 'x_studio_sales_source' => '',
+                'confirmed_by_manager' =>'',
+                'additional_deduction' => '', 
             ]
         );
 
