@@ -74,10 +74,10 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request)
+    public function update(Request $request, string $id)
     {
         // Find the user by ID
-        $user = User::findOrFail($request['id']);
+        $user = User::findOrFail($id);
 
         $allowedData = ['name', 'email', 'commission_split', 'access_level']; // Adjust as needed
 
