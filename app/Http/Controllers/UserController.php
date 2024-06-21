@@ -87,7 +87,7 @@ class UserController extends Controller
                 'name' => 'required|max:255',
                 'email' => 'required|email|max:255', // Remove unique rule for existing user
                 'password' => 'nullable|min:6', 
-                'commission_split' => 'required|integer|min:0|max:100',
+                'commission_split' => '',
                 'access_level' => 'required|integer|min:1|max:5',
                 'sales_manager_id' => 'nullable|integer', 
                 // Allow optional password update
