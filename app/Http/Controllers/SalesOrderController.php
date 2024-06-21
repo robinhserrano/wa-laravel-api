@@ -23,7 +23,7 @@ class SalesOrderController extends Controller
      * Show the form for creating a new resource.
      */
     public function create()
-    {      
+    {
         //
     }
 
@@ -106,24 +106,20 @@ class SalesOrderController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        // $validatedData = $request->validate([
-        //     'sales_order_id' => 'required|exists:sales_orders,id',
-        //     'product' => 'required',
-        //     'quantity' => 'required|integer|min:1',
-        //     'unit_price' => 'required|numeric|min:0',
-        //     'tax_excl' => 'required|numeric|min:0',
-        //     'disc' => 'required|numeric|min:0',
-        //     'delivered' => 'required|boolean',
-        //     'invoiced' => 'required|boolean',
-        //     // Add validation rules for other fields
-        // ]);
+        $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source'];
+        $orderData = Arr::only($request, $allowedSalesOrder); // Extract only allowed fields
+        $existingOrder = SalesOrder::where('name', $orderData['name'])->first();
 
-        // $salesOrder = SalesOrder::findOrFail($id);
-        // $salesOrder->update($validatedData);
+        if (!$existingOrder) {
+            // Order not found, handle error (e.g., return 404 Not Found)
+            return response()->json(['message' => 'Sales order not found'], 404);
+        }
 
-        // return response()->json(['message' => 'Order line updated successfully'], 200);
+        // Update SalesOrder
+        $existingOrder->update($orderData);
+        return response()->json(['message' => 'Sales order updated successfully'], 200);
     }
 
     /**
@@ -258,5 +254,4 @@ class SalesOrderController extends Controller
 
         return response()->json(['message' => 'Sales orders created successfully'], 201); // Created
     }
-
 }
