@@ -109,7 +109,7 @@ class SalesOrderController extends Controller
     public function update(Request $request)
     {
         $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source'];
-        $orderData = Arr::only($request, $allowedSalesOrder); // Extract only allowed fields
+        $orderData = Arr::only($request->all(), $allowedSalesOrder); // Extract only allowed fields
         $existingOrder = SalesOrder::findOrFail($request['id']);
 
         if (!$existingOrder) {
