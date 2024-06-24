@@ -39,3 +39,4 @@ Route::middleware('auth:sanctum')->resource('users', UserController::class, [
 ]);
 
 Route::post('/bulkStore', [SalesOrderController::class, 'bulkStore']);
+Route::get('/getSalesByReps', [SalesOrderController::class, 'getSalesByReps']);

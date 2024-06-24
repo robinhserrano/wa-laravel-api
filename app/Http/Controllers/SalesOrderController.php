@@ -110,17 +110,17 @@ class SalesOrderController extends Controller
     {
         $existingSalesOrder = SalesOrder::findOrFail($id);
 
-        $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source','confirmed_by_manager', 'additional_deduction'];
+        $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source', 'confirmed_by_manager', 'additional_deduction'];
 
         $validatedData = $request->validate(
             [
                 'amount_to_invoice' => '',
                 'amount_total'  => '',
-                'amount_untaxed' => '', 
+                'amount_untaxed' => '',
                 'create_date' => '',
-                'delivery_status' => '', 
+                'delivery_status' => '',
                 'internal_note_display' => '',
-                'name' => 'required|max:255', 
+                'name' => 'required|max:255',
                 'partner_id_contact_address' => '',
                 'partner_id_display_name' => '',
                 'partner_id_phone' => '',
@@ -131,8 +131,8 @@ class SalesOrderController extends Controller
                 'x_studio_referrer_processed' => '',
                 'x_studio_sales_rep_1' => '',
                 'x_studio_sales_source' => '',
-                'confirmed_by_manager' =>'',
-                'additional_deduction' => '', 
+                'confirmed_by_manager' => '',
+                'additional_deduction' => '',
             ]
         );
 
@@ -280,5 +280,16 @@ class SalesOrderController extends Controller
         }
 
         return response()->json(['message' => 'Sales orders created successfully'], 201); // Created
+    }
+
+    public function getSalesByReps(Request $request)
+    {
+        $personList = $request->get('reps', []); // Get list of reps from request query string
+
+        $salesOrders = SalesOrder::with('user', 'orderLine')
+            ->whereIn('x_studio_sales_rep_1', $personList)
+            ->get();
+
+        return response()->json($salesOrders);
     }
 }
