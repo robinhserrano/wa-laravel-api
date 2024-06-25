@@ -89,7 +89,7 @@ class UserController extends Controller
                 'password' => 'nullable|min:6', 
                 'commission_split' => '',
                 'access_level' => 'required|integer|min:1|max:5',
-                'sales_manager_id' => 'nullable|integer', 
+                'sales_manager_id' => 'nullable', 
                 // Allow optional password update
                 // Add validation rules for other fields as needed
             ]);
