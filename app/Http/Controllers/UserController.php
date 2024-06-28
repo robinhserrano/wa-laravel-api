@@ -79,7 +79,7 @@ class UserController extends Controller
         // Find the user by ID
         $user = User::findOrFail($id);
 
-        $allowedData = ['name', 'email', 'commission_split', 'access_level','sales_manager_id',  'self_gen', 'company_lead']; // Adjust as needed
+        $allowedData = ['name', 'email', 'commission_split', 'access_level', 'sales_manager_id',  'self_gen', 'company_lead']; // Adjust as needed
 
         try {
             // Define validation rules, excluding unique email for existing user
@@ -90,8 +90,8 @@ class UserController extends Controller
                 'commission_split' => '',
                 'access_level' => 'required|integer|min:1|max:5',
                 'sales_manager_id' => 'nullable|integer',
-                'self_gen' => 'nullable|double',
-                'company_lead' => 'nullable|double',
+                'self_gen' => '',
+                'company_lead' => '',
                 // Allow optional password update
                 // Add validation rules for other fields as needed
             ]);
