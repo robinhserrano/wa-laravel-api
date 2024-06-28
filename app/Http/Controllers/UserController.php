@@ -41,7 +41,7 @@ class UserController extends Controller
                 'password' => 'required|min:6',
                 'commission_split' => 'required|integer|min:0|max:100',
                 'access_level' => 'required|integer|min:1|max:5',
-                'sales_manager_id' => 'nullable|integer', 
+                'sales_manager_id' => 'nullable|integer',
                 // Add validation rules for other fields as needed
             ]);
             User::create(Arr::only($validatedData, $allowedData));
@@ -79,17 +79,19 @@ class UserController extends Controller
         // Find the user by ID
         $user = User::findOrFail($id);
 
-        $allowedData = ['name', 'email', 'commission_split', 'access_level']; // Adjust as needed
+        $allowedData = ['name', 'email', 'commission_split', 'access_level', 'self_gen', 'company_lead']; // Adjust as needed
 
         try {
             // Define validation rules, excluding unique email for existing user
             $validatedData = $request->validate([
                 'name' => 'required|max:255',
                 'email' => 'required|email|max:255', // Remove unique rule for existing user
-                'password' => 'nullable|min:6', 
+                'password' => 'nullable|min:6',
                 'commission_split' => '',
                 'access_level' => 'required|integer|min:1|max:5',
-                'sales_manager_id' => 'nullable|integer', 
+                'sales_manager_id' => 'nullable|integer',
+                'self_gen' => 'nullable|double',
+                'company_lead' => 'nullable|double',
                 // Allow optional password update
                 // Add validation rules for other fields as needed
             ]);
