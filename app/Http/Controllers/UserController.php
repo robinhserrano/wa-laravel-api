@@ -79,7 +79,7 @@ class UserController extends Controller
         // Find the user by ID
         $user = User::findOrFail($id);
 
-        $allowedData = ['name', 'email', 'commission_split', 'access_level', 'self_gen', 'company_lead']; // Adjust as needed
+        $allowedData = ['name', 'email', 'commission_split', 'access_level','sales_manager_id',  'self_gen', 'company_lead']; // Adjust as needed
 
         try {
             // Define validation rules, excluding unique email for existing user
