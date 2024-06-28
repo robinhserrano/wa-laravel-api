@@ -41,4 +41,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function members()
+    {
+        // No foreign key, filter by name (one-to-one relationship)
+        return $this->belongsTo(User::class, 'id', 'sales_manager_id');
+        // $salesRepName = $this->x_studio_sales_rep_1;
+        // return $this->hasOne(User::class)->where('name', $salesRepName);
+    }
 }
