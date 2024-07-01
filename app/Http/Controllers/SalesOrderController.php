@@ -307,9 +307,9 @@ class SalesOrderController extends Controller
                 foreach ($orderData['order_line'] as $orderLineData) {
                     $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
                     if ($existingSalesOrder) {
-                        $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
-                    } else {
                         $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                    } else {
+                        $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
                     }
                     // Placeholder for bulk assignment
                     $orderLines[] = $filteredOrderLine;
