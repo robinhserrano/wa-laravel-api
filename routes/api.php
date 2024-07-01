@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OrderLineController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -32,6 +33,10 @@ Route::post('/sanctum/token', function (Request $request) {
 
 Route::middleware('auth:sanctum')->resource('salesOrder', SalesOrderController::class, [
     'except' => ['create', 'edit']
+]);
+
+Route::middleware('auth:sanctum')->resource('orderLine', OrderLineController::class, [
+    'except' => ['create', 'edit', 'store', 'update']
 ]);
 
 Route::middleware('auth:sanctum')->resource('users', UserController::class, [
