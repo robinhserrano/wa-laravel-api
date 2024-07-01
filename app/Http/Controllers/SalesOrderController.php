@@ -306,7 +306,12 @@ class SalesOrderController extends Controller
             if (!empty($orderData['order_line'])) {
                 foreach ($orderData['order_line'] as $orderLineData) {
                     $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
-                    $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name']; // Placeholder for bulk assignment
+                    if ($existingSalesOrder) {
+                        $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
+                    } else {
+                        $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                    }
+                    // Placeholder for bulk assignment
                     $orderLines[] = $filteredOrderLine;
                 }
             }
@@ -325,9 +330,6 @@ class SalesOrderController extends Controller
             $salesOrderName = $orderLine['sales_order_id'];
             if (isset($insertedOrderIds[$salesOrderName])) {
                 $orderLine['sales_order_id'] = $insertedOrderIds[$salesOrderName];
-            } else {
-                // Handle case where sales order ID couldn't be found (error or rollback)
-                $orderLine['sales_order_id'] = null; // or implement error handling
             }
         }
 
