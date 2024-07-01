@@ -306,13 +306,26 @@ class SalesOrderController extends Controller
             if (!empty($orderData['order_line'])) {
                 foreach ($orderData['order_line'] as $orderLineData) {
                     $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
+
+                    //if existing sales
                     if ($existingSalesOrder) {
-                        $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                        //orderline->product
+                        $product = $filteredOrderLine['product'];
+
+                        $existingOrderLine = OrderLine::where('sales_order_id', $existingSalesOrder['id'])
+                            ->where('product', $product)
+                            ->first();
+
+                        if ($existingOrderLine) {
+                            $existingOrderLine->update($filteredOrderLine);
+                        } else {
+                            $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                            $orderLines[] = $filteredOrderLine;
+                        }
                     } else {
                         $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
+                        $orderLines[] = $filteredOrderLine;
                     }
-                    // Placeholder for bulk assignment
-                    $orderLines[] = $filteredOrderLine;
                 }
             }
         }
