@@ -229,6 +229,58 @@ class SalesOrderController extends Controller
     //     return response()->json(['message' => 'Sales order created successfully'], 201); // Created
     // }
 
+    // public function bulkStore(Request $request)
+    // {
+    //     $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source'];
+    //     $allowedOrderLine = ['sales_order_id', 'product', 'description', 'quantity', 'unit_price', 'tax_excl', 'disc', 'taxes', 'delivered', 'invoiced'];
+    //     $salesOrders = [];
+    //     $orderLines = [];
+
+    //     $salesOrderList = $request->all();
+
+    //     // return $salesOrderList;
+
+
+    //     foreach ($salesOrderList as $orderData) {
+    //         $filteredSalesOrder = Arr::only($orderData, $allowedSalesOrder);
+    //         $salesOrders[] = $filteredSalesOrder;
+
+    //         if (!empty($orderData['order_line'])) {
+    //             foreach ($orderData['order_line'] as $orderLineData) {
+    //                 $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
+    //                 $filteredOrderLine['sales_order_id'] = $orderData['name']; // Placeholder for bulk assignment //Temporary placed orderData['name'] for later
+    //                 $orderLines[] = $filteredOrderLine;
+    //             }
+    //         }
+    //     }
+
+    //     // return 'haha';
+
+    //     // Insert Sales Orders in bulk
+    //     SalesOrder::insert($salesOrders);
+
+    //     // Get the inserted Sales Order IDs
+    //     $insertedOrderIds = SalesOrder::whereIn('name', array_column($salesOrders, 'name'))->pluck('id', 'name');
+
+    //     // Assign Sales Order IDs to Order Lines
+    //     foreach ($orderLines as &$orderLine) {
+    //         $salesOrderName = $orderLine['sales_order_id'];
+    //         if (isset($insertedOrderIds[$salesOrderName])) {
+    //             $orderLine['sales_order_id'] = $insertedOrderIds[$salesOrderName];
+    //         } else {
+    //             // Handle case where sales order ID couldn't be found (if needed)
+    //             $orderLine['sales_order_id'] = null; // or handle error/rollback scenario
+    //         }
+    //     }
+
+
+    //     // Insert Order Lines in bulk (if any)
+    //     if (!empty($orderLines)) {
+    //         OrderLine::insert($orderLines);
+    //     }
+
+    //     return response()->json(['message' => 'Sales orders created successfully'], 201); // Created
+    // }
     public function bulkStore(Request $request)
     {
         $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source'];
@@ -238,28 +290,34 @@ class SalesOrderController extends Controller
 
         $salesOrderList = $request->all();
 
-        // return $salesOrderList;
-
-
         foreach ($salesOrderList as $orderData) {
             $filteredSalesOrder = Arr::only($orderData, $allowedSalesOrder);
-            $salesOrders[] = $filteredSalesOrder;
+
+            // Check if sales order already exists by name (unique identifier)
+            $existingSalesOrder = SalesOrder::where('name', $filteredSalesOrder['name'])->first();
+
+            if ($existingSalesOrder) {
+                // Update existing sales order
+                $existingSalesOrder->update($filteredSalesOrder);
+            } else {
+                $salesOrders[] = $filteredSalesOrder;
+            }
 
             if (!empty($orderData['order_line'])) {
                 foreach ($orderData['order_line'] as $orderLineData) {
                     $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
-                    $filteredOrderLine['sales_order_id'] = $orderData['name']; // Placeholder for bulk assignment //Temporary placed orderData['name'] for later
+                    $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name']; // Placeholder for bulk assignment
                     $orderLines[] = $filteredOrderLine;
                 }
             }
         }
 
-        // return 'haha';
+        // Insert new sales orders in bulk (if any)
+        if (!empty($salesOrders)) {
+            SalesOrder::insert($salesOrders);
+        }
 
-        // Insert Sales Orders in bulk
-        SalesOrder::insert($salesOrders);
-
-        // Get the inserted Sales Order IDs
+        // Get the inserted (or existing) Sales Order IDs
         $insertedOrderIds = SalesOrder::whereIn('name', array_column($salesOrders, 'name'))->pluck('id', 'name');
 
         // Assign Sales Order IDs to Order Lines
@@ -268,18 +326,17 @@ class SalesOrderController extends Controller
             if (isset($insertedOrderIds[$salesOrderName])) {
                 $orderLine['sales_order_id'] = $insertedOrderIds[$salesOrderName];
             } else {
-                // Handle case where sales order ID couldn't be found (if needed)
-                $orderLine['sales_order_id'] = null; // or handle error/rollback scenario
+                // Handle case where sales order ID couldn't be found (error or rollback)
+                $orderLine['sales_order_id'] = null; // or implement error handling
             }
         }
-
 
         // Insert Order Lines in bulk (if any)
         if (!empty($orderLines)) {
             OrderLine::insert($orderLines);
         }
 
-        return response()->json(['message' => 'Sales orders created successfully'], 201); // Created
+        return response()->json(['message' => 'Sales orders created or updated successfully'], 201); // Created
     }
 
     public function getSalesByReps(Request $request)
