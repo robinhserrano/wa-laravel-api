@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sales_order_tables', function (Blueprint $table) {
+        Schema::table('sales_orders', function (Blueprint $table) {
             $table->timestamp('date_deadline')->nullable();
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sales_order_tables', function (Blueprint $table) {
+        Schema::table('sales_orders', function (Blueprint $table) {
             //
         });
     }
