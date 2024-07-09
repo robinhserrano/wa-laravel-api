@@ -372,13 +372,18 @@ class SalesOrderController extends Controller
         $dateDeadlines = $request->all();
         $updatedCount = 0;
 
+        // Get all sales orders that are not in $dateDeadlines
+        $salesOrdersToUpdate = SalesOrder::whereNotIn('name', array_column($dateDeadlines, 'name'))->get();
+
+        foreach ($salesOrdersToUpdate as $salesOrder) {
+            $salesOrder->update(['date_deadline' => null]);
+            $updatedCount++;
+        }
+
+        // Update existing sales orders that are in $dateDeadlines
         foreach ($dateDeadlines as $deadline) {
-            // Check if sales order already exists by name (unique identifier)
-            $existingSalesOrder =  SalesOrder::where('id', $deadline['id'])->first();
-
-
+            $existingSalesOrder = SalesOrder::where('name', $deadline['name'])->first();
             if ($existingSalesOrder) {
-                // Update existing sales order
                 $existingSalesOrder->update(['date_deadline' => $deadline['date_deadline']]);
                 $updatedCount++;
             }
