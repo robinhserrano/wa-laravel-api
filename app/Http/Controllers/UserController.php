@@ -123,4 +123,17 @@ class UserController extends Controller
             return response()->json(['error' => 'Sales order not found'], 404);
         }
     }
+
+    public function updatePassword(Request $request)
+    {
+        $userJson = $request->all();
+        $user = User::findOrFail($userJson['id']);
+        try {
+            $user->update(['password' => $userJson['password']]);
+
+            return response()->json(['message' => 'User updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Faild to update password'], 404);
+        }
+    }
 }
