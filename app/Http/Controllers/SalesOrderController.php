@@ -365,4 +365,25 @@ class SalesOrderController extends Controller
 
         return response()->json($salesOrders);
     }
+
+    public function bulkUpdateDeadlines(Request $request)
+    {
+
+        $dateDeadlines = $request->all();
+        $updatedCount = 0;
+
+        foreach ($dateDeadlines as $deadline) {
+            // Check if sales order already exists by name (unique identifier)
+            $existingSalesOrder =  SalesOrder::where('id', $deadline['id'])->first();
+
+
+            if ($existingSalesOrder) {
+                // Update existing sales order
+                $existingSalesOrder->update(['date_deadline' => $deadline['date_deadline']]);
+                $updatedCount++;
+            }
+        }
+
+        return response()->json(['message' => 'Sales updated deadlines count: ' . $updatedCount], 200); // Created
+    }
 }
