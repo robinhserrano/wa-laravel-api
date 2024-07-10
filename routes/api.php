@@ -47,3 +47,5 @@ Route::post('/bulkStore', [SalesOrderController::class, 'bulkStore']);
 Route::get('/getSalesByReps', [SalesOrderController::class, 'getSalesByReps']);
 Route::post('/bulkUpdateDeadlines', [SalesOrderController::class, 'bulkUpdateDeadlines']);
 Route::post('/updatePassword', [UserController::class, 'updatePassword']);
+Route::post('/updateManualAddition', [SalesOrderController::class, 'updateManualAddition']);
+Route::post('/updateConfirmedBy', [SalesOrderController::class, 'updateConfirmedBy']);

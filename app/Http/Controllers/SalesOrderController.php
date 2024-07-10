@@ -391,4 +391,30 @@ class SalesOrderController extends Controller
 
         return response()->json(['message' => 'Sales updated deadlines count: ' . $updatedCount], 200); // Created
     }
+
+    public function updateManualAddition(Request $request)
+    {
+        $json = $request->all();
+        $data = SalesOrder::where('name', $json['name'])->first();
+        try {
+            $data->update(['last_manual_add_by' => $json['user_id'], 'manual_notes' => $json['manual_notes'], 'additional_deduction' => $json['additional_deduction']]);
+
+            return response()->json(['message' => 'Manual Addition updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Failed to update Manual Addition'], 404);
+        }
+    }
+
+    public function updateConfirmedBy(Request $request)
+    {
+        $json = $request->all();
+        $data = SalesOrder::where('name', $json['name'])->first();
+        try {
+            $data->update(['last_confirmed_by' => $json['user_id'], 'confirmed_by_manager' => $json['confirmed_by_manager']]);
+
+            return response()->json(['message' => 'Confirmed By Manager updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Failed to update Confirmed By Manager'], 404);
+        }
+    }
 }
