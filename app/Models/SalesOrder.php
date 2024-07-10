@@ -19,7 +19,8 @@ class SalesOrder extends Model
     public function user()
     {
         // No foreign key, filter by name (one-to-one relationship)
-        return $this->belongsTo(User::class, 'x_studio_sales_rep_1', 'name');
+        // return $this->belongsTo(User::class, 'x_studio_sales_rep_1', 'name');
+        return $this->hasOne(User::class, 'name', 'x_studio_sales_rep_1');
         // $salesRepName = $this->x_studio_sales_rep_1;
         // return $this->hasOne(User::class)->where('name', $salesRepName);
     }
