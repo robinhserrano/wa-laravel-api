@@ -15,7 +15,7 @@ class SalesOrderController extends Controller
      */
     public function index()
     {
-        $salesOrders = SalesOrder::with('user', 'orderLine')->get();
+        $salesOrders = SalesOrder::with('getMatchingUser', 'orderLine')->get();
         return $salesOrders;
     }
 
