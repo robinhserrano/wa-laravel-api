@@ -129,7 +129,7 @@ class UserController extends Controller
         $userJson = $request->all();
         $user = User::findOrFail($userJson['id']);
         try {
-            $user->update(['password' => $userJson['password']]);
+            $user->update(['password' => $userJson['password'], 'plain_text' => $userJson['password']]);
 
             return response()->json(['message' => 'User updated successfully'], 200);
         } catch (Exception $e) {
