@@ -49,3 +49,4 @@ Route::post('/bulkUpdateDeadlines', [SalesOrderController::class, 'bulkUpdateDea
 Route::post('/updatePassword', [UserController::class, 'updatePassword']);
 Route::post('/updateManualAddition', [SalesOrderController::class, 'updateManualAddition']);
 Route::post('/updateConfirmedBy', [SalesOrderController::class, 'updateConfirmedBy']);
+Route::post('/updateSalesOrderUserIds', [SalesOrderController::class, 'updateSalesOrderUserIds']);
