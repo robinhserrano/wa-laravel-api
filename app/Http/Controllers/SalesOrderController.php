@@ -420,12 +420,19 @@ class SalesOrderController extends Controller
 
     public function updateSalesOrderUserIds(Request $request)
     {
-        $json = $request->all();
-        $data = SalesOrder::where('id', $json['id'])->first();
+        $jsons = $request->all();
+        $updatedCount = 0;
         try {
-            $data->update(['user_id' => $json['user_id']]);
 
-            return response()->json(['message' => 'SalesOrderUserIds updated successfully'], 200);
+            foreach ($jsons as $json) {
+                $existingSalesOrder = SalesOrder::where('id', $json['id'])->first();
+                if ($existingSalesOrder) {
+                    $existingSalesOrder->update(['user_id' => $json['user_id']]);
+                    $updatedCount++;
+                }
+            }
+
+            return response()->json(['message' => 'Successfulluy updated SalesOrderUserIds count: ' . $updatedCount], 200); // Created
         } catch (Exception $e) {
             return response()->json(['message' => 'Failed to update SalesOrderUserIds'], 404);
         }
