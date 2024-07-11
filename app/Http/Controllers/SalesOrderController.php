@@ -417,4 +417,17 @@ class SalesOrderController extends Controller
             return response()->json(['message' => 'Failed to update Confirmed By Manager'], 404);
         }
     }
+
+    public function updateSalesOrderUserIds(Request $request)
+    {
+        $json = $request->all();
+        $data = SalesOrder::where('id', $json['id'])->first();
+        try {
+            $data->update(['user_id' => $json['user_id']]);
+
+            return response()->json(['message' => 'SalesOrderUserIds updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Failed to update SalesOrderUserIds'], 404);
+        }
+    }
 }
