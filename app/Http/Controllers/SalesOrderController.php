@@ -437,4 +437,33 @@ class SalesOrderController extends Controller
             return response()->json(['message' => 'Failed to update SalesOrderUserIds'], 404);
         }
     }
+
+    public function getPaginatedSalesOrders(Request $request)
+    {
+        // Retrieve 'per_page' query parameter from the request, default to 50 if not provided
+        $perPage = $request->query('per_page', 50);
+
+        // Retrieve 'page' query parameter from the request, default to 1 if not provided
+        $currentPage = $request->query('page', 1);
+
+        // Start building the query to fetch SalesOrders with related 'user' and 'orderLine'
+        $salesOrdersQuery = SalesOrder::with('user', 'orderLine');
+
+        // Paginate the results based on the provided $perPage and $currentPage
+        $salesOrders = $salesOrdersQuery->paginate($perPage, ['*'], 'page', $currentPage);
+
+        // Prepare pagination information
+        $pagination = [
+            'total_items' => $salesOrders->total(),
+            'current_page' => $salesOrders->currentPage(),
+            'per_page' => $salesOrders->perPage(),
+            'last_page' => $salesOrders->lastPage(),
+        ];
+
+        // Return the response as JSON
+        return response()->json([
+            'data' => $salesOrders->items(), // Retrieve paginated items
+            'pagination' => $pagination,
+        ]);
+    }
 }
