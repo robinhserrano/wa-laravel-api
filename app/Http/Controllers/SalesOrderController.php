@@ -466,4 +466,17 @@ class SalesOrderController extends Controller
             'pagination' => $pagination,
         ]);
     }
+
+    public function updateEnteredOdooBy(Request $request)
+    {
+        $json = $request->all();
+        $data = SalesOrder::where('name', $json['name'])->first();
+        try {
+            $data->update(['last_entered_odoo_by' => $json['user_id'], 'is_entered_odoo' => $json['is_entered_odoo']]);
+
+            return response()->json(['message' => 'Entered Odoo By updated successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Failed to update Entered Odoo By'], 404);
+        }
+    }
 }

@@ -51,3 +51,4 @@ Route::post('/updateManualAddition', [SalesOrderController::class, 'updateManual
 Route::post('/updateConfirmedBy', [SalesOrderController::class, 'updateConfirmedBy']);
 Route::post('/updateSalesOrderUserIds', [SalesOrderController::class, 'updateSalesOrderUserIds']);
 Route::get('/getPaginatedSalesOrders', [SalesOrderController::class, 'getPaginatedSalesOrders']);
+Route::get('/updateEnteredOdooBy', [SalesOrderController::class, 'updateEnteredOdooBy']);
