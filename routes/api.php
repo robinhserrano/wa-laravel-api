@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LandingPriceController;
 use App\Http\Controllers\OrderLineController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\UserController;
@@ -32,6 +33,10 @@ Route::post('/sanctum/token', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->resource('salesOrder', SalesOrderController::class, [
+    'except' => ['create', 'edit']
+]);
+
+Route::middleware('auth:sanctum')->resource('landingPrice', LandingPriceController::class, [
     'except' => ['create', 'edit']
 ]);
 
