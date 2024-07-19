@@ -12,11 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('landing_prices', function (Blueprint $table) {
-            $table->string('name')->nullable()->change();
-            $table->string('internal_reference')->nullable()->change();
-            $table->string('product_category')->nullable()->change();
-            $table->double('installation_service')->nullable()->change();
-            $table->double('supply_only')->nullable()->change();
+            $table->dropColumn(['installation_service', 'supply_only']);
         });
     }
 
