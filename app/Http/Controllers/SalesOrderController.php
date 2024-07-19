@@ -304,17 +304,41 @@ class SalesOrderController extends Controller
                 $salesOrders[] = $filteredSalesOrder;
             }
 
+            // if (!empty($orderData['order_line'])) {
+            //     foreach ($orderData['order_line'] as $orderLineData) {
+            //         $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
+
+            //         //if existing sales
+            //         if ($existingSalesOrder) {
+            //             //orderline->product
+            //             $product = $filteredOrderLine['product'];
+
+            //             $existingOrderLine = OrderLine::where('sales_order_id', $existingSalesOrder['id'])
+            //                 ->where('product', $product)
+            //                 ->first();
+
+            //             if ($existingOrderLine) {
+            //                 $existingOrderLine->update($filteredOrderLine);
+            //             } else {
+            //                 $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+            //                 $orderLines[] = $filteredOrderLine;
+            //             }
+            //         } else {
+            //             $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
+            //             $orderLines[] = $filteredOrderLine;
+            //         }
+            //     }
+            // }
             if (!empty($orderData['order_line'])) {
+                $existingOrderLineProducts = []; // Store existing order line products
+
                 foreach ($orderData['order_line'] as $orderLineData) {
                     $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
 
-                    //if existing sales
+                    // Get existing order lines for the current sales order
                     if ($existingSalesOrder) {
-                        //orderline->product
-                        $product = $filteredOrderLine['product'];
-
                         $existingOrderLine = OrderLine::where('sales_order_id', $existingSalesOrder['id'])
-                            ->where('product', $product)
+                            ->where('product', $filteredOrderLine['product'])
                             ->first();
 
                         if ($existingOrderLine) {
@@ -323,10 +347,26 @@ class SalesOrderController extends Controller
                             $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
                             $orderLines[] = $filteredOrderLine;
                         }
+
+                        $existingOrderLineProducts[] = $filteredOrderLine['product']; // Track existing product
                     } else {
                         $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
                         $orderLines[] = $filteredOrderLine;
                     }
+                }
+
+                // Identify order lines to be deleted (existing - new)
+                $productsToDelete = array_diff(
+                    OrderLine::where('sales_order_id', ($existingSalesOrder) ? $existingSalesOrder['id'] : $filteredSalesOrder['name'])
+                        ->pluck('product')->toArray(),
+                    $existingOrderLineProducts
+                );
+
+                // Delete order lines to be removed
+                if (!empty($productsToDelete)) {
+                    OrderLine::where('sales_order_id', ($existingSalesOrder) ? $existingSalesOrder['id'] : $filteredSalesOrder['name'])
+                        ->whereIn('product', $productsToDelete)
+                        ->delete();
                 }
             }
         }

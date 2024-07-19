@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('landing_price_history', function (Blueprint $table) {
+        Schema::create('landing_price_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('landing_price_id'); // Foreign key to landing_prices table
             $table->double('installation_service')->nullable();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('landing_price_history');
+        Schema::dropIfExists('landing_price_histories');
     }
 };
