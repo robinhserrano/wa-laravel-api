@@ -32,12 +32,16 @@ class LandingPriceController extends Controller
      */
     public function store(Request $request)
     {
-        $allowedLandingPrice = ['name', 'internal_reference', 'product_category', 'installation_service', 'supply_only'];
+        $allowedLandingPrice = ['name', 'internal_reference', 'product_category'];
+        $allowedLandingPriceHistory = ['installation_service', 'supply_only', 'recorded_at'];
         $landingPrice = $request->all();
         $filteredLandingPrice = Arr::only($landingPrice, $allowedLandingPrice);
-        LandingPrice::create($filteredLandingPrice);
+        $createdLandingPrice = LandingPrice::create($filteredLandingPrice);
+        $landingPriceHistoryData = Arr::only($landingPrice, $allowedLandingPriceHistory);
+        $landingPriceHistoryData['landing_price_id'] = $createdLandingPrice->id;
+        $createdLandingPrice->history()->create($landingPriceHistoryData);
 
-        return response()->json(['message' => 'Sales order created successfully'], 200);
+        return response()->json(['message' => 'Landing price created successfully'], 200);
     }
 
     /**
@@ -63,7 +67,8 @@ class LandingPriceController extends Controller
     public function update(Request $request, string $id)
     {
         $existingLandingPrice = LandingPrice::findOrFail($id);
-        $allowedLandingPrice = ['name', 'internal_reference', 'product_category', 'installation_service', 'supply_only'];
+        $allowedLandingPrice = ['name', 'internal_reference', 'product_category'];
+        $allowedLandingPriceHistory = ['installation_service', 'supply_only'];
         $validatedData = $request->validate(
             [
                 'name' => '',
@@ -101,4 +106,3 @@ class LandingPriceController extends Controller
         }
     }
 }
-
