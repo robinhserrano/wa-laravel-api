@@ -33,14 +33,18 @@ class LandingPriceController extends Controller
      */
     public function store(Request $request)
     {
-        $allowedLandingPrice = ['name', 'internal_reference', 'product_category'];
-        $allowedLandingPriceHistory = ['installation_service', 'supply_only', 'recorded_at'];
-        $landingPrice = $request->all();
-        $filteredLandingPrice = Arr::only($landingPrice, $allowedLandingPrice);
-        $createdLandingPrice = LandingPrice::create($filteredLandingPrice);
-        $landingPriceHistoryData = Arr::only($landingPrice, $allowedLandingPriceHistory);
-        $landingPriceHistoryData['landing_price_id'] = $createdLandingPrice->id;
-        LandingPriceHistory::create($landingPriceHistoryData);
+        $validatedLandingPrice = $request->validate([
+            'name' => 'required',
+            'internal_reference' => 'required',
+            'product_category' => 'required',
+        ]);
+
+        $landingPrice = LandingPrice::create($validatedLandingPrice);
+
+        $allowedHistoryFields = ['installation_service', 'supply_only', 'recorded_at'];
+        $historyData = $request->only($allowedHistoryFields);
+
+        $landingPrice->history()->create($historyData);
 
         return response()->json(['message' => 'Landing price created successfully'], 200);
     }
@@ -67,31 +71,26 @@ class LandingPriceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $landingPrice = LandingPrice::findOrFail($id); // Find the landing price by ID
+        $landingPrice = LandingPrice::findOrFail($id);
 
-        $allowedLandingPrice = ['name', 'internal_reference', 'product_category'];
-        $allowedLandingPriceHistory = ['installation_service', 'supply_only'];
+        $validatedLandingPrice = $request->validate([
+            'name' => 'required',
+            'internal_reference' => 'required',
+            'product_category' => 'required',
+        ]);
 
-        $landingPriceData = $request->all();
+        $landingPrice->update($validatedLandingPrice);
 
-        // Filter allowed landing price data
-        $filteredLandingPrice = Arr::only($landingPriceData, $allowedLandingPrice);
+        $allowedHistoryFields = ['installation_service', 'supply_only'];
+        $historyData = $request->only($allowedHistoryFields);
 
-        // Update landing price with filtered data
-        $landingPrice->update($filteredLandingPrice);
-
-        $latestHistory = $landingPrice->history()->latest()->first();
-
-        $shouldCreateNewHistory = (!$latestHistory ||
-            $latestHistory->installation_service !== $request->input('installation_service') ||
-            $latestHistory->supply_only !== $request->input('supply_only'));
+        $shouldCreateNewHistory = (!$landingPrice->history->latest() ||
+            $landingPrice->history->latest()->isDirty($allowedHistoryFields));
 
         if ($shouldCreateNewHistory) {
-            $newHistoryData = Arr::only($landingPriceData, $allowedLandingPriceHistory);
-            $newHistoryData['landing_price_id'] = $landingPrice->id;
-            $newHistoryData['recorded_at'] = now(); // Set recorded_at to current time
-
-            LandingPriceHistory::create($newHistoryData);
+            $historyData['landing_price_id'] = $landingPrice->id;
+            $historyData['recorded_at'] = now();
+            $landingPrice->history()->create($historyData);
         }
 
         return response()->json(['message' => 'Landing price updated successfully'], 200);
