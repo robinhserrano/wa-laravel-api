@@ -82,11 +82,24 @@ class LandingPriceController extends Controller
 
         $landingPrice->update($validatedLandingPrice);
 
+        // $allowedHistoryFields = ['installation_service', 'supply_only'];
+        // $historyData = $request->only($allowedHistoryFields);
+
+        // $shouldCreateNewHistory = (!$landingPrice->history->latest() ||
+        //     $landingPrice->history->latest()->isDirty($allowedHistoryFields));
+
+        // if ($shouldCreateNewHistory) {
+        //     $historyData['landing_price_id'] = $landingPrice->id;
+        //     $historyData['recorded_at'] = now();
+        //     $landingPrice->history()->create($historyData);
+        // }
         $allowedHistoryFields = ['installation_service', 'supply_only'];
         $historyData = $request->only($allowedHistoryFields);
 
-        $shouldCreateNewHistory = (!$landingPrice->history->latest() ||
-            $landingPrice->history->latest()->isDirty($allowedHistoryFields));
+        $latestHistory = $landingPrice->history()->orderBy('created_at', 'desc')->first();
+
+        $shouldCreateNewHistory = (!$latestHistory ||
+            array_diff($historyData, (array) $latestHistory) !== []);
 
         if ($shouldCreateNewHistory) {
             $historyData['landing_price_id'] = $landingPrice->id;
