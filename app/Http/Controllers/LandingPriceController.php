@@ -39,7 +39,7 @@ class LandingPriceController extends Controller
         $createdLandingPrice = LandingPrice::create($filteredLandingPrice);
         $landingPriceHistoryData = Arr::only($landingPrice, $allowedLandingPriceHistory);
         $landingPriceHistoryData['landing_price_id'] = $createdLandingPrice->id;
-        $createdLandingPrice->history()->create($landingPriceHistoryData);
+        LandingPrice::create($landingPriceHistoryData);
 
         return response()->json(['message' => 'Landing price created successfully'], 200);
     }
@@ -90,7 +90,7 @@ class LandingPriceController extends Controller
             $newHistoryData['landing_price_id'] = $landingPrice->id;
             $newHistoryData['recorded_at'] = now(); // Set recorded_at to current time
 
-            $landingPrice->history()->create($newHistoryData);
+            LandingPrice::create($newHistoryData);
         }
 
         return response()->json(['message' => 'Landing price updated successfully'], 200);
