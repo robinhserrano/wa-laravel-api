@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('landing_prices_histories', function (Blueprint $table) {
+        Schema::table('landing_price_histories', function (Blueprint $table) {
             $table->timestamps();
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('landing_prices_histories', function (Blueprint $table) {
+        Schema::table('landing_price_histories', function (Blueprint $table) {
             //
         });
     }
