@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LandingPrice;
+use App\Models\LandingPriceHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Exception;
@@ -39,7 +40,7 @@ class LandingPriceController extends Controller
         $createdLandingPrice = LandingPrice::create($filteredLandingPrice);
         $landingPriceHistoryData = Arr::only($landingPrice, $allowedLandingPriceHistory);
         $landingPriceHistoryData['landing_price_id'] = $createdLandingPrice->id;
-        LandingPrice::create($landingPriceHistoryData);
+        LandingPriceHistory::create($landingPriceHistoryData);
 
         return response()->json(['message' => 'Landing price created successfully'], 200);
     }
@@ -90,7 +91,7 @@ class LandingPriceController extends Controller
             $newHistoryData['landing_price_id'] = $landingPrice->id;
             $newHistoryData['recorded_at'] = now(); // Set recorded_at to current time
 
-            LandingPrice::create($newHistoryData);
+            LandingPriceHistory::create($newHistoryData);
         }
 
         return response()->json(['message' => 'Landing price updated successfully'], 200);
