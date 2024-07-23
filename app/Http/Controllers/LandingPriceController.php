@@ -98,8 +98,8 @@ class LandingPriceController extends Controller
 
         $latestHistory = $landingPrice->history()->orderBy('created_at', 'desc')->first();
 
-        $shouldCreateNewHistory = (!$latestHistory ||
-            array_diff($historyData, (array) $latestHistory) !== []);
+        $shouldCreateNewHistory = !$latestHistory ||
+            !empty(array_diff_assoc($historyData, $latestHistory->toArray()));
 
         if ($shouldCreateNewHistory) {
             $historyData['landing_price_id'] = $landingPrice->id;
