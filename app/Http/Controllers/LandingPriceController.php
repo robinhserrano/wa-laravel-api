@@ -36,7 +36,7 @@ class LandingPriceController extends Controller
         $validatedLandingPrice = $request->validate([
             'name' => 'required',
             'internal_reference' => 'required',
-            'product_category' => 'required',
+            'product_category' => '',
         ]);
 
         $landingPrice = LandingPrice::create($validatedLandingPrice);
@@ -77,7 +77,7 @@ class LandingPriceController extends Controller
         $validatedLandingPrice = $request->validate([
             'name' => 'required',
             'internal_reference' => 'required',
-            'product_category' => 'required',
+            'product_category' => '',
         ]);
 
         $landingPrice->update($validatedLandingPrice);
