@@ -41,8 +41,9 @@ class LandingPriceController extends Controller
 
         $landingPrice = LandingPrice::create($validatedLandingPrice);
 
-        $allowedHistoryFields = ['installation_service', 'supply_only', 'recorded_at'];
+        $allowedHistoryFields = ['installation_service', 'supply_only'];
         $historyData = $request->only($allowedHistoryFields);
+        $historyData['recorded_at'] = now();
 
         $landingPrice->history()->create($historyData);
 
