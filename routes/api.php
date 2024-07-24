@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LandingPriceController;
+use App\Http\Controllers\OdooSyncLogController;
 use App\Http\Controllers\OrderLineController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\UserController;
@@ -45,6 +46,10 @@ Route::middleware('auth:sanctum')->resource('orderLine', OrderLineController::cl
 ]);
 
 Route::middleware('auth:sanctum')->resource('users', UserController::class, [
+    'except' => ['create', 'edit']
+]);
+
+Route::middleware('auth:sanctum')->resource('odooSyncLog', OdooSyncLogController::class, [
     'except' => ['create', 'edit']
 ]);
 
