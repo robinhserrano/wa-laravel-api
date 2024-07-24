@@ -47,4 +47,11 @@ class OdooSyncLogController extends Controller
             return response()->json(['error' => 'OdooSyncLog not found'], 404);
         }
     }
+
+    public function latest()
+    {
+        $odooSyncLog = OdooSyncLog::latest()->first();
+
+        return response()->json($odooSyncLog);
+    }
 }

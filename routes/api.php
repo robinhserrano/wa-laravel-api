@@ -62,3 +62,4 @@ Route::post('/updateConfirmedBy', [SalesOrderController::class, 'updateConfirmed
 Route::post('/updateSalesOrderUserIds', [SalesOrderController::class, 'updateSalesOrderUserIds']);
 Route::get('/getPaginatedSalesOrders', [SalesOrderController::class, 'getPaginatedSalesOrders']);
 Route::post('/updateEnteredOdooBy', [SalesOrderController::class, 'updateEnteredOdooBy']);
+Route::get('/odooSyncLog/latest', [OdooSyncLogController::class, 'latest']);
