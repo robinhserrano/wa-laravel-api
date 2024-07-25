@@ -319,16 +319,21 @@ class SalesOrderController extends Controller
                             ->first();
 
                         if ($existingOrderLine) {
-                            $existingOrderLine->update($filteredOrderLine);
-                            $orderLinesUpdated[] = $filteredOrderLine['product'];
-                        } else {
-                            if (!in_array($filteredOrderLine['product'], $orderLinesUpdated)) { // Check if product is already updated
-                                $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
-                                $orderLines[] = $filteredOrderLine;
+                            // $existingOrderLine->update($filteredOrderLine);
+                            // $orderLinesUpdated[] = $filteredOrderLine['product'];
+
+                            if (!in_array($existingOrderLine->product, $orderLinesUpdated)) {
+                                // Update the existing order line
+                                $existingOrderLine->update($filteredOrderLine);
+                                $orderLinesUpdated[] = $existingOrderLine->product; // Assuming product is a unique identifier
                             } else {
                                 $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
                                 $orderLines[] = $filteredOrderLine;
                             }
+                        } else {
+
+                            $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                            $orderLines[] = $filteredOrderLine;
                         }
 
                         $existingOrderLineProducts[] = $filteredOrderLine['product']; // Track existing product
