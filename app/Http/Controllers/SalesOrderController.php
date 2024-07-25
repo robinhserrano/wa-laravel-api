@@ -296,6 +296,7 @@ class SalesOrderController extends Controller
 
             // Check if sales order already exists by name (unique identifier)
             $existingSalesOrder = SalesOrder::where('name', $filteredSalesOrder['name'])->first();
+            $orderLinesUpdated = [];
 
             if ($existingSalesOrder) {
                 // Update existing sales order
@@ -304,31 +305,7 @@ class SalesOrderController extends Controller
                 $salesOrders[] = $filteredSalesOrder;
             }
 
-            // if (!empty($orderData['order_line'])) {
-            //     foreach ($orderData['order_line'] as $orderLineData) {
-            //         $filteredOrderLine = Arr::only($orderLineData, $allowedOrderLine);
 
-            //         //if existing sales
-            //         if ($existingSalesOrder) {
-            //             //orderline->product
-            //             $product = $filteredOrderLine['product'];
-
-            //             $existingOrderLine = OrderLine::where('sales_order_id', $existingSalesOrder['id'])
-            //                 ->where('product', $product)
-            //                 ->first();
-
-            //             if ($existingOrderLine) {
-            //                 $existingOrderLine->update($filteredOrderLine);
-            //             } else {
-            //                 $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
-            //                 $orderLines[] = $filteredOrderLine;
-            //             }
-            //         } else {
-            //             $filteredOrderLine['sales_order_id'] = $filteredSalesOrder['name'];
-            //             $orderLines[] = $filteredOrderLine;
-            //         }
-            //     }
-            // }
             if (!empty($orderData['order_line'])) {
                 $existingOrderLineProducts = []; // Store existing order line products
 
@@ -343,9 +320,15 @@ class SalesOrderController extends Controller
 
                         if ($existingOrderLine) {
                             $existingOrderLine->update($filteredOrderLine);
+                            $orderLinesUpdated[] = $filteredOrderLine['product'];
                         } else {
-                            $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
-                            $orderLines[] = $filteredOrderLine;
+                            if (!in_array($filteredOrderLine['product'], $orderLinesUpdated)) { // Check if product is already updated
+                                $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                                $orderLines[] = $filteredOrderLine;
+                            } else {
+                                $filteredOrderLine['sales_order_id'] = $existingSalesOrder['id'];
+                                $orderLines[] = $filteredOrderLine;
+                            }
                         }
 
                         $existingOrderLineProducts[] = $filteredOrderLine['product']; // Track existing product
