@@ -320,6 +320,7 @@ class SalesOrderController extends Controller
     }
 }
 
+
 function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
 {
     $existingOrderLineProducts = [];
@@ -344,67 +345,44 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     }
 
     // Find existing order lines
-    $orderId = $existingSalesOrder ? $existingSalesOrder->id : $filteredSalesOrderName;
-    $existingOrderLines = OrderLine::where('sales_order_id', $orderId)->get();
-
-    // Prepare to track which products are in the incoming data
-    $incomingProducts = array_keys($incomingOrderLines);
+    $existingOrderLines = ($existingSalesOrder)
+        ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
+        : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
 
     // Merge existing and incoming order lines
     $mergedOrderLines = [];
     foreach ($existingOrderLines as $existingOrderLine) {
         if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            // Update existing order line with incoming data
-            $incomingOrderLines[$existingOrderLine->product]->id = $existingOrderLine->id; // Preserve ID for update
+            $incomingOrderLines[$existingOrderLine->product]->update($existingOrderLine->toArray());
             $orderLinesToUpdate[] = $existingOrderLine->product;
-            $mergedOrderLines[] = $incomingOrderLines[$existingOrderLine->product];
+        }
+        $mergedOrderLines[] = $existingOrderLine;
+    }
+    $mergedOrderLines = array_merge($mergedOrderLines, array_values($incomingOrderLines));
+
+    // Separate lines for update and creation
+    foreach ($mergedOrderLines as $mergedOrderLine) {
+        if (in_array($mergedOrderLine->product, $orderLinesToUpdate)) {
+            $mergedOrderLine->save();
         } else {
-            // Existing order line not in incoming data - mark for deletion
-            $existingOrderLineProducts[] = $existingOrderLine->product;
+            $mergedOrderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+            $orderLines[] = $mergedOrderLine->toArray();
         }
-    }
-
-    // Add new incoming order lines that were not in the existing data
-    foreach ($incomingOrderLines as $product => $incomingOrderLine) {
-        if (!in_array($product, $orderLinesToUpdate)) {
-            $incomingOrderLine->sales_order_id = $orderId;
-            $orderLines[] = $incomingOrderLine->toArray();
-        }
-    }
-
-    // Update existing order lines
-    foreach ($orderLinesToUpdate as $product) {
-        $orderLine = OrderLine::where('sales_order_id', $orderId)
-            ->where('product', $product)
-            ->first();
-        if ($orderLine) {
-            $orderLine->update($incomingOrderLines[$product]->toArray());
-        }
+        $existingOrderLineProducts[] = $mergedOrderLine->product;
     }
 
     // Create new order lines
     if (!empty($orderLines)) {
-        foreach ($orderLines as $orderLineData) {
-            // Check if an order line with the same product and sales_order_id exists
-            $existingOrderLine = OrderLine::where('product', $orderLineData['product'])
-                ->where('sales_order_id', $orderId)
-                ->first();
-
-            if ($existingOrderLine) {
-                // Update existing order line
-                $existingOrderLine->update($orderLineData);
-            } else {
-                // Create new order line
-                OrderLine::create($orderLineData);
-            }
-        }
+        OrderLine::insert($orderLines);
     }
 
     // Identify and delete order lines to be removed
-    $productsToDelete = array_diff($existingOrderLineProducts, $incomingProducts);
-    if (!empty($productsToDelete)) {
-        OrderLine::where('sales_order_id', $orderId)
-            ->whereIn('product', $productsToDelete)
-            ->delete();
+    // Directly delete based on existing order lines that are not in incoming data
+    $existingOrderLineIdsToDelete = $existingOrderLines
+        ->whereNotIn('product', $existingOrderLineProducts)
+        ->pluck('id');
+
+    if (!empty($existingOrderLineIdsToDelete)) {
+        OrderLine::whereIn('id', $existingOrderLineIdsToDelete)->delete();
     }
 }
