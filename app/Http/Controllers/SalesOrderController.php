@@ -320,15 +320,77 @@ class SalesOrderController extends Controller
     }
 }
 
+// function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
+// {
+//     $existingOrderLineProducts = [];
+//     $orderLinesToUpdate = [];
+//     $orderLinesToDelete = [];
+
+
+//     // Extract incoming order lines
+//     $incomingOrderLines = [];
+//     foreach ($orderData['order_line'] as $orderLineData) {
+//         $incomingOrderLine = new OrderLine([
+//             'product' => $orderLineData['product'],
+//             'description' => $orderLineData['description'] ?? null,
+//             'quantity' => $orderLineData['quantity'],
+//             'unit_price' => $orderLineData['unit_price'],
+//             'tax_excl' => $orderLineData['tax_excl'] ?? null,
+//             'disc' => $orderLineData['disc'] ?? null,
+//             'taxes' => $orderData['taxes'] ?? null,
+//             'delivered' => $orderLineData['delivered'] ?? null,
+//             'invoiced' => $orderLineData['invoiced'] ?? null,
+//         ]);
+//         $incomingOrderLines[$incomingOrderLine->getKey()] = $incomingOrderLine; // Use getKey() for unique identifier
+//     }
+
+//     // Find existing order lines
+//     $existingOrderLines = ($existingSalesOrder)
+//         ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
+//         : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
+
+//     // Filter existing data based on presence in incoming data
+//     $filteredExistingData = [];
+//     foreach ($existingOrderLines as $existingOrderLine) {
+//         $key = $existingOrderLine->getKey(); // Use getKey() for unique identifier
+//         if (isset($incomingOrderLines[$key])) {
+//             $filteredExistingData[] = $existingOrderLine;
+//         }
+//     }
+
+//     // Combine and process data
+//     $combinedData = array_merge($filteredExistingData, $incomingOrderLines);
+
+//     // Update or create order lines (loop through combined data)
+//     foreach ($combinedData as $orderLine) {
+//         // Check if existing or new order line
+//         if (array_key_exists($orderLine->getKey(), $filteredExistingData)) {
+//             // Update existing order line
+//             $orderLine->update();
+//         } else {
+//             // Create new order line
+//             $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+//             $orderLine->save();
+//         }
+//     }
+
+//     // // Identify and delete order lines to be removed
+//     // $existingOrderLineIdsToDelete = $existingOrderLines
+//     //     ->whereNotIn('product', $existingOrderLineProducts)
+//     //     ->pluck('id');
+
+//     if (!empty($orderLinesToDelete)) {
+//         OrderLine::whereIn('id', $orderLinesToDelete)->delete();
+//     }
+// }
+
+
 function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
 {
-    $existingOrderLineProducts = [];
-    $orderLinesToUpdate = [];
-
-    // Extract incoming order line data
+    // Extract incoming order lines
     $incomingOrderLines = [];
     foreach ($orderData['order_line'] as $orderLineData) {
-        $filteredOrderLine = new OrderLine([
+        $incomingOrderLine = new OrderLine([
             'product' => $orderLineData['product'],
             'description' => $orderLineData['description'] ?? null,
             'quantity' => $orderLineData['quantity'],
@@ -339,7 +401,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
             'delivered' => $orderLineData['delivered'] ?? null,
             'invoiced' => $orderLineData['invoiced'] ?? null,
         ]);
-        $incomingOrderLines[$filteredOrderLine->product] = $filteredOrderLine;
+        $incomingOrderLines[$incomingOrderLine->getKey()] = $incomingOrderLine; // Use getKey() for unique identifier
     }
 
     // Find existing order lines
@@ -347,46 +409,34 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
         ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
         : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
 
-    // Separate existing and incoming order lines
+    // Filter existing data based on presence in incoming data
+    $filteredExistingData = [];
     foreach ($existingOrderLines as $existingOrderLine) {
-        $existingOrderLineProducts[] = $existingOrderLine->product;
-        if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            $incomingOrderLine = $incomingOrderLines[$existingOrderLine->product];
-            $orderLinesToUpdate[] = [
-                'id' => $existingOrderLine->id,
-                'product' => $incomingOrderLine->product,
-                'description' => $incomingOrderLine['description'] ?? null,
-                'quantity' => $incomingOrderLine['quantity'],
-                'unit_price' => $incomingOrderLine['unit_price'],
-                'tax_excl' => $incomingOrderLine['tax_excl'] ?? null,
-                'disc' => $incomingOrderLine['disc'] ?? null,
-                'taxes' => $incomingOrderLine['taxes'] ?? null,
-                'delivered' => $incomingOrderLine['delivered'] ?? null,
-                'invoiced' => $incomingOrderLine['invoiced'] ?? null,
-                // ... other fields to update
-            ];
-            unset($incomingOrderLines[$existingOrderLine->product]);
+        $key = $existingOrderLine->getKey(); // Use getKey() for unique identifier
+        if (isset($incomingOrderLines[$key])) {
+            $filteredExistingData[] = $existingOrderLine;
         }
     }
 
-    // Create or update order lines
-    foreach ($orderLinesToUpdate as $orderLineData) {
-        $orderLineData['sales_order_id'] = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
-        OrderLine::updateOrCreate(['id' => $orderLineData['id']], $orderLineData);
+    // Combine and process data
+    $combinedData = array_merge($filteredExistingData, $incomingOrderLines);
+
+    // Update or create order lines (loop through combined data)
+    foreach ($combinedData as $orderLine) {
+        // Check if existing or new order line
+        if (array_key_exists($orderLine->getKey(), $filteredExistingData)) {
+            // Update existing order line
+            $orderLine->update();
+        } else {
+            // Create new order line
+            $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+            $orderLine->save();
+        }
     }
 
-    // Insert new order lines
-    foreach ($incomingOrderLines as $orderLine) {
-        $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
-        $orderLine->save();
-    }
-
-    // Identify and delete order lines to be removed
-    $existingOrderLineIdsToDelete = $existingOrderLines
-        ->whereNotIn('product', $existingOrderLineProducts)
-        ->pluck('id');
-
-    if (!empty($existingOrderLineIdsToDelete)) {
-        OrderLine::whereIn('id', $existingOrderLineIdsToDelete)->delete();
-    }
+    // Delete excess order lines
+    $existingProductIds = $existingOrderLines->pluck('product')->toArray();
+    $incomingProductIds = array_keys($incomingOrderLines);
+    $productsToDelete = array_diff($existingProductIds, $incomingProductIds);
+    OrderLine::whereIn('product', $productsToDelete)->delete();
 }
