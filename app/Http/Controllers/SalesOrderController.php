@@ -163,8 +163,14 @@ class SalesOrderController extends Controller
 
     public function bulkStore(Request $request)
     {
-        $allowedSalesOrder = ['amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date', 'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address', 'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid', 'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed', 'x_studio_sales_rep_1', 'x_studio_sales_source'];
-        $allowedOrderLine = ['sales_order_id', 'product', 'description', 'quantity', 'unit_price', 'tax_excl', 'disc', 'taxes', 'delivered', 'invoiced'];
+        $allowedSalesOrder = [
+            'amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date',
+            'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address',
+            'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid',
+            'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed',
+            'x_studio_sales_rep_1', 'x_studio_sales_source'
+        ];
+
         $salesOrders = [];
         $orderLines = [];
 
@@ -179,21 +185,38 @@ class SalesOrderController extends Controller
             if ($existingSalesOrder) {
                 // Update existing sales order
                 $existingSalesOrder->update($filteredSalesOrder);
+                $salesOrderId = $existingSalesOrder->id;
             } else {
+                // Prepare new sales order for insertion
                 $salesOrders[] = $filteredSalesOrder;
+                // Use placeholder for ID that will be available after insertion
+                $salesOrderId = null;
             }
 
-            saveOrUpdateOrderLines($orderData, $existingSalesOrder, $filteredSalesOrder['name']);
+            // Collect order lines separately to process later
+            $orderLines[] = [
+                'order_data' => $orderData,
+                'sales_order_id' => $salesOrderId
+            ];
         }
 
         // Insert new sales orders in bulk (if any)
-        if (!empty($salesOrders)) {
-            SalesOrder::insert($salesOrders);
+        $insertedSalesOrders = SalesOrder::insertGetId($salesOrders);
+
+        // Update salesOrderId in order lines based on inserted sales orders
+        foreach ($orderLines as $index => $lineData) {
+            if ($lineData['sales_order_id'] === null) {
+                $orderLines[$index]['sales_order_id'] = $insertedSalesOrders[$index]['id'];
+            }
+        }
+
+        // Process order lines
+        foreach ($orderLines as $lineData) {
+            saveOrUpdateOrderLines($lineData['order_data'], $lineData['sales_order_id']);
         }
 
         return response()->json(['message' => 'Sales orders created or updated successfully'], 201); // Created
     }
-
     public function getSalesByReps(Request $request)
     {
         $personList = $request->get('reps', []); // Get list of reps from request query string
@@ -320,73 +343,7 @@ class SalesOrderController extends Controller
     }
 }
 
-// function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
-// {
-//     $existingOrderLineProducts = [];
-//     $orderLinesToUpdate = [];
-//     $orderLinesToDelete = [];
-
-
-//     // Extract incoming order lines
-//     $incomingOrderLines = [];
-//     foreach ($orderData['order_line'] as $orderLineData) {
-//         $incomingOrderLine = new OrderLine([
-//             'product' => $orderLineData['product'],
-//             'description' => $orderLineData['description'] ?? null,
-//             'quantity' => $orderLineData['quantity'],
-//             'unit_price' => $orderLineData['unit_price'],
-//             'tax_excl' => $orderLineData['tax_excl'] ?? null,
-//             'disc' => $orderLineData['disc'] ?? null,
-//             'taxes' => $orderData['taxes'] ?? null,
-//             'delivered' => $orderLineData['delivered'] ?? null,
-//             'invoiced' => $orderLineData['invoiced'] ?? null,
-//         ]);
-//         $incomingOrderLines[$incomingOrderLine->getKey()] = $incomingOrderLine; // Use getKey() for unique identifier
-//     }
-
-//     // Find existing order lines
-//     $existingOrderLines = ($existingSalesOrder)
-//         ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
-//         : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
-
-//     // Filter existing data based on presence in incoming data
-//     $filteredExistingData = [];
-//     foreach ($existingOrderLines as $existingOrderLine) {
-//         $key = $existingOrderLine->getKey(); // Use getKey() for unique identifier
-//         if (isset($incomingOrderLines[$key])) {
-//             $filteredExistingData[] = $existingOrderLine;
-//         }
-//     }
-
-//     // Combine and process data
-//     $combinedData = array_merge($filteredExistingData, $incomingOrderLines);
-
-//     // Update or create order lines (loop through combined data)
-//     foreach ($combinedData as $orderLine) {
-//         // Check if existing or new order line
-//         if (array_key_exists($orderLine->getKey(), $filteredExistingData)) {
-//             // Update existing order line
-//             $orderLine->update();
-//         } else {
-//             // Create new order line
-//             $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
-//             $orderLine->save();
-//         }
-//     }
-
-//     // // Identify and delete order lines to be removed
-//     // $existingOrderLineIdsToDelete = $existingOrderLines
-//     //     ->whereNotIn('product', $existingOrderLineProducts)
-//     //     ->pluck('id');
-
-//     if (!empty($orderLinesToDelete)) {
-//         OrderLine::whereIn('id', $orderLinesToDelete)->delete();
-//     }
-// }
-
-
-
-function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
+function saveOrUpdateOrderLines(array $orderData, ?int $salesOrderId = null): void
 {
     $existingOrderLineProducts = [];
     $orderLinesToUpdate = [];
@@ -409,8 +366,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     }
 
     // Find existing order lines
-    $existingOrderLines = $existingSalesOrder ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get() : collect([]);
-
+    $existingOrderLines = $salesOrderId ? OrderLine::where('sales_order_id', $salesOrderId)->get() : collect([]);
 
     // Separate existing and incoming order lines
     foreach ($existingOrderLines as $existingOrderLine) {
@@ -428,7 +384,6 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
                     'taxes' => $incomingOrderLine->taxes ?? null,
                     'delivered' => $incomingOrderLine->delivered ?? null,
                     'invoiced' => $incomingOrderLine->invoiced ?? null,
-                    // ... other fields to update
                 ];
                 unset($incomingOrderLines[$index]);
                 break; // Exit the loop after finding a match
@@ -438,13 +393,13 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 
     // Create or update order lines
     foreach ($orderLinesToUpdate as $orderLineData) {
-        $orderLineData['sales_order_id'] = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        $orderLineData['sales_order_id'] = $salesOrderId;
         OrderLine::updateOrCreate(['id' => $orderLineData['id']], $orderLineData);
     }
 
     // Insert new order lines
     foreach ($incomingOrderLines as $orderLine) {
-        $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        $orderLine->sales_order_id = $salesOrderId;
         $orderLine->save();
     }
 
