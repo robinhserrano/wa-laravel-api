@@ -320,7 +320,6 @@ class SalesOrderController extends Controller
     }
 }
 
-
 function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
 {
     $existingOrderLineProducts = [];
@@ -353,7 +352,9 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     $mergedOrderLines = [];
     foreach ($existingOrderLines as $existingOrderLine) {
         if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            $incomingOrderLines[$existingOrderLine->product]->update($existingOrderLine->toArray());
+            $incomingOrderLines[$existingOrderLine->product]->id = $existingOrderLine->id;
+            $incomingOrderLines[$existingOrderLine->product]->updated_at = $existingOrderLine->updated_at;
+            $incomingOrderLines[$existingOrderLine->product]->created_at = $existingOrderLine->created_at;
             $orderLinesToUpdate[] = $existingOrderLine->product;
         }
         $mergedOrderLines[] = $existingOrderLine;
@@ -362,10 +363,10 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 
     // Separate lines for update and creation
     foreach ($mergedOrderLines as $mergedOrderLine) {
+        $mergedOrderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
         if (in_array($mergedOrderLine->product, $orderLinesToUpdate)) {
             $mergedOrderLine->save();
         } else {
-            $mergedOrderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
             $orderLines[] = $mergedOrderLine->toArray();
         }
         $existingOrderLineProducts[] = $mergedOrderLine->product;
@@ -373,6 +374,10 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 
     // Create new order lines
     if (!empty($orderLines)) {
+        // Add sales_order_id to all order lines being inserted
+        foreach ($orderLines as &$line) {
+            $line['sales_order_id'] = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        }
         OrderLine::insert($orderLines);
     }
 
