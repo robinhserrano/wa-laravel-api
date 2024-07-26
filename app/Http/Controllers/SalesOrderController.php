@@ -324,7 +324,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 {
     $existingOrderLineProducts = [];
     $orderLinesToUpdate = [];
-    $orderLines = [];
+    $orderLinesToCreate = [];
 
     // Extract order line data
     $incomingOrderLines = [];
@@ -348,41 +348,35 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
         ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
         : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
 
-    // Merge existing and incoming order lines
-    $mergedOrderLines = [];
+    // Separate lines for update and creation
     foreach ($existingOrderLines as $existingOrderLine) {
         if (isset($incomingOrderLines[$existingOrderLine->product])) {
             $incomingOrderLines[$existingOrderLine->product]->id = $existingOrderLine->id;
             $incomingOrderLines[$existingOrderLine->product]->updated_at = $existingOrderLine->updated_at;
             $incomingOrderLines[$existingOrderLine->product]->created_at = $existingOrderLine->created_at;
-            $orderLinesToUpdate[] = $existingOrderLine->product;
+            $orderLinesToUpdate[] = $incomingOrderLines[$existingOrderLine->product];
         }
-        $mergedOrderLines[] = $existingOrderLine;
+        $existingOrderLineProducts[] = $existingOrderLine->product;
     }
-    $mergedOrderLines = array_merge($mergedOrderLines, array_values($incomingOrderLines));
 
-    // Separate lines for update and creation
-    foreach ($mergedOrderLines as $mergedOrderLine) {
-        $mergedOrderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
-        if (in_array($mergedOrderLine->product, $orderLinesToUpdate)) {
-            $mergedOrderLine->save();
-        } else {
-            $orderLines[] = $mergedOrderLine->toArray();
-        }
-        $existingOrderLineProducts[] = $mergedOrderLine->product;
+    // Find which incoming lines are new and which are to be updated
+    $orderLinesToCreate = array_values(array_diff_key($incomingOrderLines, array_flip($existingOrderLineProducts)));
+
+    // Update existing order lines
+    foreach ($orderLinesToUpdate as $orderLineToUpdate) {
+        $orderLineToUpdate->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        $orderLineToUpdate->save();
     }
 
     // Create new order lines
-    if (!empty($orderLines)) {
-        // Add sales_order_id to all order lines being inserted
-        foreach ($orderLines as &$line) {
-            $line['sales_order_id'] = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+    if (!empty($orderLinesToCreate)) {
+        foreach ($orderLinesToCreate as &$line) {
+            $line->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
         }
-        OrderLine::insert($orderLines);
+        OrderLine::insert(array_map(fn ($line) => $line->toArray(), $orderLinesToCreate));
     }
 
     // Identify and delete order lines to be removed
-    // Directly delete based on existing order lines that are not in incoming data
     $existingOrderLineIdsToDelete = $existingOrderLines
         ->whereNotIn('product', $existingOrderLineProducts)
         ->pluck('id');
