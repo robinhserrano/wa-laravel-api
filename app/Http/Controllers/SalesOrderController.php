@@ -175,6 +175,7 @@ class SalesOrderController extends Controller
         $orderLines = [];
 
         $salesOrderList = $request->all();
+        $newSalesOrders = [];
 
         foreach ($salesOrderList as $orderData) {
             $filteredSalesOrder = Arr::only($orderData, $allowedSalesOrder);
@@ -188,7 +189,7 @@ class SalesOrderController extends Controller
                 $salesOrderId = $existingSalesOrder->id;
             } else {
                 // Prepare new sales order for insertion
-                $salesOrders[] = $filteredSalesOrder;
+                $newSalesOrders[] = $filteredSalesOrder;
                 // Use placeholder for ID that will be available after insertion
                 $salesOrderId = null;
             }
@@ -200,13 +201,19 @@ class SalesOrderController extends Controller
             ];
         }
 
-        // Insert new sales orders in bulk (if any)
-        $insertedSalesOrders = SalesOrder::insertGetId($salesOrders);
+        if (!empty($newSalesOrders)) {
+            $insertedSalesOrders = SalesOrder::insert($newSalesOrders);
 
-        // Update salesOrderId in order lines based on inserted sales orders
-        foreach ($orderLines as $index => $lineData) {
-            if ($lineData['sales_order_id'] === null) {
-                $orderLines[$index]['sales_order_id'] = $insertedSalesOrders[$index]['id'];
+            // Retrieve the IDs of the newly inserted sales orders
+            $newSalesOrderIds = SalesOrder::whereIn('name', array_column($newSalesOrders, 'name'))
+                ->pluck('id', 'name')
+                ->toArray();
+
+            // Update salesOrderId in order lines based on inserted sales orders
+            foreach ($orderLines as $index => $lineData) {
+                if ($lineData['sales_order_id'] === null) {
+                    $orderLines[$index]['sales_order_id'] = $newSalesOrderIds[$lineData['order_data']['name']] ?? null;
+                }
             }
         }
 
