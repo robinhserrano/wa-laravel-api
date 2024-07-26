@@ -319,7 +319,6 @@ class SalesOrderController extends Controller
         }
     }
 }
-
 function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
 {
     $existingOrderLineProducts = [];
@@ -352,29 +351,23 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     foreach ($existingOrderLines as $existingOrderLine) {
         $existingOrderLineProducts[] = $existingOrderLine->product;
         if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            $incomingOrderLines[$existingOrderLine->product]->id = $existingOrderLine->id;
-            $incomingOrderLines[$existingOrderLine->product]->updated_at = $existingOrderLine->updated_at;
-            $incomingOrderLines[$existingOrderLine->product]->created_at = $existingOrderLine->created_at;
-            $orderLinesToUpdate[] = $incomingOrderLines[$existingOrderLine->product];
+            $incomingOrderLine = $incomingOrderLines[$existingOrderLine->product];
+            $incomingOrderLine->id = $existingOrderLine->id;
+            $orderLinesToUpdate[] = $incomingOrderLine;
             unset($incomingOrderLines[$existingOrderLine->product]); // Remove from incoming to process as new
         }
     }
 
-    // Collect remaining incoming lines to create
-    foreach ($incomingOrderLines as $incomingOrderLine) {
-        $incomingOrderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
-        $orderLinesToCreate[] = $incomingOrderLine->toArray();
-    }
-
-    // Perform updates
+    // Create or update order lines
     foreach ($orderLinesToUpdate as $orderLine) {
         $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
         $orderLine->save();
     }
 
-    // Perform inserts
-    if (!empty($orderLinesToCreate)) {
-        OrderLine::insert($orderLinesToCreate);
+    // Insert new order lines
+    foreach ($incomingOrderLines as $orderLine) {
+        $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        $orderLine->save(); // This will use the Eloquent `create` method and avoid primary key issues
     }
 
     // Identify and delete order lines to be removed
