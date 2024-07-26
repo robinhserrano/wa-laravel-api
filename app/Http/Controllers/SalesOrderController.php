@@ -322,12 +322,12 @@ class SalesOrderController extends Controller
 
 function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrder = null, string $filteredSalesOrderName = ''): void
 {
-    $existingOrderLineProducts = [];
-    $orderLinesToUpdate = [];
-
-    // Extract incoming order line data
+    $existingOrderLines = [];
     $incomingOrderLines = [];
+
+    // Extract incoming order line data and create unique identifiers
     foreach ($orderData['order_line'] as $orderLineData) {
+        $uniqueIdentifier = generateUniqueIdentifier($orderLineData);
         $filteredOrderLine = new OrderLine([
             'product' => $orderLineData['product'],
             'description' => $orderLineData['description'] ?? null,
@@ -339,7 +339,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
             'delivered' => $orderLineData['delivered'] ?? null,
             'invoiced' => $orderLineData['invoiced'] ?? null,
         ]);
-        $incomingOrderLines[$filteredOrderLine->product] = $filteredOrderLine;
+        $incomingOrderLines[$uniqueIdentifier] = $filteredOrderLine;
     }
 
     // Find existing order lines
@@ -347,25 +347,31 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
         ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
         : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
 
-    // Separate existing and incoming order lines
+    // Create unique identifiers for existing order lines
+    $existingOrderLinesByIdentifier = [];
     foreach ($existingOrderLines as $existingOrderLine) {
-        $existingOrderLineProducts[] = $existingOrderLine->product;
-        if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            $incomingOrderLine = $incomingOrderLines[$existingOrderLine->product];
+        $uniqueIdentifier = generateUniqueIdentifier($existingOrderLine->toArray());
+        $existingOrderLinesByIdentifier[$uniqueIdentifier] = $existingOrderLine;
+    }
+
+    $orderLinesToUpdate = [];
+    foreach ($existingOrderLinesByIdentifier as $identifier => $existingOrderLine) {
+        if (isset($incomingOrderLines[$identifier])) {
+            $incomingOrderLine = $incomingOrderLines[$identifier];
             $orderLinesToUpdate[] = [
                 'id' => $existingOrderLine->id,
                 'product' => $incomingOrderLine->product,
-                'description' => $incomingOrderLine['description'] ?? null,
-                'quantity' => $incomingOrderLine['quantity'],
-                'unit_price' => $incomingOrderLine['unit_price'],
-                'tax_excl' => $incomingOrderLine['tax_excl'] ?? null,
-                'disc' => $incomingOrderLine['disc'] ?? null,
-                'taxes' => $incomingOrderLine['taxes'] ?? null,
-                'delivered' => $incomingOrderLine['delivered'] ?? null,
-                'invoiced' => $incomingOrderLine['invoiced'] ?? null,
+                'description' => $incomingOrderLine->description ?? null,
+                'quantity' => $incomingOrderLine->quantity,
+                'unit_price' => $incomingOrderLine->unit_price,
+                'tax_excl' => $incomingOrderLine->tax_excl ?? null,
+                'disc' => $incomingOrderLine->disc ?? null,
+                'taxes' => $incomingOrderLine->taxes ?? null,
+                'delivered' => $incomingOrderLine->delivered ?? null,
+                'invoiced' => $incomingOrderLine->invoiced ?? null,
                 // ... other fields to update
             ];
-            unset($incomingOrderLines[$existingOrderLine->product]);
+            unset($incomingOrderLines[$identifier]);
         }
     }
 
@@ -382,11 +388,21 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     }
 
     // Identify and delete order lines to be removed
-    $existingOrderLineIdsToDelete = $existingOrderLines
-        ->whereNotIn('product', $existingOrderLineProducts)
-        ->pluck('id');
+    $incomingIdentifiers = array_keys($incomingOrderLines);
+    $existingIdentifiersToDelete = array_diff(array_keys($existingOrderLinesByIdentifier), $incomingIdentifiers);
 
-    if (!empty($existingOrderLineIdsToDelete)) {
-        OrderLine::whereIn('id', $existingOrderLineIdsToDelete)->delete();
+    if (!empty($existingIdentifiersToDelete)) {
+        $idsToDelete = array_map(fn ($identifier) => $existingOrderLinesByIdentifier[$identifier]->id, $existingIdentifiersToDelete);
+        OrderLine::whereIn('id', $idsToDelete)->delete();
     }
+}
+
+function generateUniqueIdentifier(array $orderLineData): string
+{
+    return md5(
+        $orderLineData['product'] .
+            $orderLineData['unit_price'] .
+            ($orderLineData['description'] ?? '') .
+            ($orderLineData['quantity'] ?? '')
+    );
 }
