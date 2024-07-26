@@ -384,7 +384,20 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 
     // Create new order lines
     if (!empty($orderLines)) {
-        OrderLine::insert($orderLines);
+        foreach ($orderLines as $orderLineData) {
+            // Check if an order line with the same product and sales_order_id exists
+            $existingOrderLine = OrderLine::where('product', $orderLineData['product'])
+                ->where('sales_order_id', $orderId)
+                ->first();
+
+            if ($existingOrderLine) {
+                // Update existing order line
+                $existingOrderLine->update($orderLineData);
+            } else {
+                // Create new order line
+                OrderLine::create($orderLineData);
+            }
+        }
     }
 
     // Identify and delete order lines to be removed
