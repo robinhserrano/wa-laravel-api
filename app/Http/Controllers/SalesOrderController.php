@@ -409,7 +409,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     }
 
     // Find existing order lines
-    $existingOrderLines = OrderLine::where('sales_order_id', $existingSalesOrder->id)->get();
+    $existingOrderLines = $existingSalesOrder ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get() : collect([]);
 
 
     // Separate existing and incoming order lines
