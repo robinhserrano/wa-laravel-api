@@ -324,9 +324,8 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 {
     $existingOrderLineProducts = [];
     $orderLinesToUpdate = [];
-    $orderLines = [];
 
-    // Extract order line data
+    // Extract incoming order line data
     $incomingOrderLines = [];
     foreach ($orderData['order_line'] as $orderLineData) {
         $filteredOrderLine = new OrderLine([
@@ -348,41 +347,46 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
         ? OrderLine::where('sales_order_id', $existingSalesOrder->id)->get()
         : OrderLine::where('sales_order_id', $filteredSalesOrderName)->get();
 
-    // Merge existing and incoming order lines
-    $mergedOrderLines = [];
+    // Separate existing and incoming order lines
     foreach ($existingOrderLines as $existingOrderLine) {
+        $existingOrderLineProducts[] = $existingOrderLine->product;
         if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            $incomingOrderLines[$existingOrderLine->product]->update($existingOrderLine->toArray());
-            $orderLinesToUpdate[] = $existingOrderLine->product;
+            $incomingOrderLine = $incomingOrderLines[$existingOrderLine->product];
+            $orderLinesToUpdate[] = [
+                'id' => $existingOrderLine->id,
+                'product' => $incomingOrderLine->product,
+                'description' => $incomingOrderLine['description'] ?? null,
+                'quantity' => $incomingOrderLine['quantity'],
+                'unit_price' => $incomingOrderLine['unit_price'],
+                'tax_excl' => $incomingOrderLine['tax_excl'] ?? null,
+                'disc' => $incomingOrderLine['disc'] ?? null,
+                'taxes' => $incomingOrderLine['taxes'] ?? null,
+                'delivered' => $incomingOrderLine['delivered'] ?? null,
+                'invoiced' => $incomingOrderLine['invoiced'] ?? null,
+                // ... other fields to update
+            ];
+            unset($incomingOrderLines[$existingOrderLine->product]);
         }
-        $mergedOrderLines[] = $existingOrderLine;
-    }
-    $mergedOrderLines = array_merge($mergedOrderLines, array_values($incomingOrderLines));
-
-    // Separate lines for update and creation
-    foreach ($mergedOrderLines as $mergedOrderLine) {
-        if (in_array($mergedOrderLine->product, $orderLinesToUpdate)) {
-            $mergedOrderLine->save();
-        } else {
-            $mergedOrderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
-            $orderLines[] = $mergedOrderLine->toArray();
-        }
-        $existingOrderLineProducts[] = $mergedOrderLine->product;
     }
 
-    // Create new order lines
-    if (!empty($orderLines)) {
-        OrderLine::insert($orderLines);
+    // Create or update order lines
+    foreach ($orderLinesToUpdate as $orderLineData) {
+        $orderLineData['sales_order_id'] = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        OrderLine::updateOrCreate(['id' => $orderLineData['id']], $orderLineData);
+    }
+
+    // Insert new order lines
+    foreach ($incomingOrderLines as $orderLine) {
+        $orderLine->sales_order_id = ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName;
+        $orderLine->save();
     }
 
     // Identify and delete order lines to be removed
-    $productsToDelete = OrderLine::where('sales_order_id', ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName)
+    $existingOrderLineIdsToDelete = $existingOrderLines
         ->whereNotIn('product', $existingOrderLineProducts)
-        ->pluck('product')->toArray();
+        ->pluck('id');
 
-    if (!empty($productsToDelete)) {
-        OrderLine::where('sales_order_id', ($existingSalesOrder) ? $existingSalesOrder->id : $filteredSalesOrderName)
-            ->whereIn('product', $productsToDelete)
-            ->delete();
+    if (!empty($existingOrderLineIdsToDelete)) {
+        OrderLine::whereIn('id', $existingOrderLineIdsToDelete)->delete();
     }
 }
