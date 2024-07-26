@@ -393,7 +393,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
 
     // Extract incoming order line data
     $incomingOrderLines = [];
-    foreach ($orderData['order_line'] as $orderLineData) {
+    foreach ($orderData['order_line'] as $index => $orderLineData) {
         $filteredOrderLine = new OrderLine([
             'product' => $orderLineData['product'],
             'description' => $orderLineData['description'] ?? null,
@@ -405,7 +405,7 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
             'delivered' => $orderLineData['delivered'] ?? null,
             'invoiced' => $orderLineData['invoiced'] ?? null,
         ]);
-        $incomingOrderLines[$filteredOrderLine->product] = $filteredOrderLine;
+        $incomingOrderLines[$index] = $filteredOrderLine;
     }
 
     // Find existing order lines
@@ -416,22 +416,24 @@ function saveOrUpdateOrderLines(array $orderData, ?SalesOrder $existingSalesOrde
     // Separate existing and incoming order lines
     foreach ($existingOrderLines as $existingOrderLine) {
         $existingOrderLineProducts[] = $existingOrderLine->product;
-        if (isset($incomingOrderLines[$existingOrderLine->product])) {
-            $incomingOrderLine = $incomingOrderLines[$existingOrderLine->product];
-            $orderLinesToUpdate[] = [
-                'id' => $existingOrderLine->id,
-                'product' => $incomingOrderLine->product,
-                'description' => $incomingOrderLine['description'] ?? null,
-                'quantity' => $incomingOrderLine['quantity'],
-                'unit_price' => $incomingOrderLine['unit_price'],
-                'tax_excl' => $incomingOrderLine['tax_excl'] ?? null,
-                'disc' => $incomingOrderLine['disc'] ?? null,
-                'taxes' => $incomingOrderLine['taxes'] ?? null,
-                'delivered' => $incomingOrderLine['delivered'] ?? null,
-                'invoiced' => $incomingOrderLine['invoiced'] ?? null,
-                // ... other fields to update
-            ];
-            unset($incomingOrderLines[$existingOrderLine->product]);
+        foreach ($incomingOrderLines as $index => $incomingOrderLine) {
+            if ($existingOrderLine->product === $incomingOrderLine->product) {
+                $orderLinesToUpdate[] = [
+                    'id' => $existingOrderLine->id,
+                    'product' => $incomingOrderLine->product,
+                    'description' => $incomingOrderLine->description ?? null,
+                    'quantity' => $incomingOrderLine->quantity,
+                    'unit_price' => $incomingOrderLine->unit_price,
+                    'tax_excl' => $incomingOrderLine->tax_excl ?? null,
+                    'disc' => $incomingOrderLine->disc ?? null,
+                    'taxes' => $incomingOrderLine->taxes ?? null,
+                    'delivered' => $incomingOrderLine->delivered ?? null,
+                    'invoiced' => $incomingOrderLine->invoiced ?? null,
+                    // ... other fields to update
+                ];
+                unset($incomingOrderLines[$index]);
+                break; // Exit the loop after finding a match
+            }
         }
     }
 
