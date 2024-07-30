@@ -40,7 +40,7 @@ class UserController extends Controller
                 'email' => 'required|email|unique:users|max:255',
                 'password' => 'required|min:6',
                 'commission_split' => 'required|integer|min:0|max:100',
-                'access_level' => 'required|integer|min:1|max:5',
+                'access_level' => 'required|integer|min:0|max:5',
                 'sales_manager_id' => 'nullable|integer',
                 // Add validation rules for other fields as needed
             ]);
