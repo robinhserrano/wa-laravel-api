@@ -65,4 +65,4 @@ Route::get('/getPaginatedSalesOrders', [SalesOrderController::class, 'getPaginat
 Route::post('/updateEnteredOdooBy', [SalesOrderController::class, 'updateEnteredOdooBy']);
 Route::get('/odooSyncLogLatest', [OdooSyncLogController::class, 'latest']);
 Route::get('/currentWarehouse', [CurrentWarehouseController::class, 'index']);
-Route::get('/bulkStoreWarehouse', [CurrentWarehouseController::class, 'bulkStore']);
+Route::post('/bulkStoreWarehouse', [CurrentWarehouseController::class, 'bulkStore']);
