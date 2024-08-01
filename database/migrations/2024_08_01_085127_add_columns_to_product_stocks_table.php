@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('current_warehouses', function (Blueprint $table) {
+        Schema::table('product_stocks', function (Blueprint $table) {
             $table->integer('warehouse_id')->nullable();
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('current_warehouses', function (Blueprint $table) {
+        Schema::table('product_stocks', function (Blueprint $table) {
             //
         });
     }
