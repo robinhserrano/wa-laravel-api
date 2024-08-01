@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CurrentWarehouseController;
 use App\Http\Controllers\LandingPriceController;
 use App\Http\Controllers\OdooSyncLogController;
 use App\Http\Controllers\OrderLineController;
@@ -63,3 +64,5 @@ Route::post('/updateSalesOrderUserIds', [SalesOrderController::class, 'updateSal
 Route::get('/getPaginatedSalesOrders', [SalesOrderController::class, 'getPaginatedSalesOrders']);
 Route::post('/updateEnteredOdooBy', [SalesOrderController::class, 'updateEnteredOdooBy']);
 Route::get('/odooSyncLogLatest', [OdooSyncLogController::class, 'latest']);
+Route::get('/currentWarehouse', [CurrentWarehouseController::class, 'index']);
+Route::get('/bulkStoreWarehouse', [CurrentWarehouseController::class, 'bulkStore']);
