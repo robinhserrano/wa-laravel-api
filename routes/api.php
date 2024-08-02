@@ -4,6 +4,7 @@ use App\Http\Controllers\CurrentWarehouseController;
 use App\Http\Controllers\LandingPriceController;
 use App\Http\Controllers\OdooSyncLogController;
 use App\Http\Controllers\OrderLineController;
+use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\UserController;
 use App\Models\User;
@@ -66,3 +67,5 @@ Route::post('/updateEnteredOdooBy', [SalesOrderController::class, 'updateEntered
 Route::get('/odooSyncLogLatest', [OdooSyncLogController::class, 'latest']);
 Route::get('/currentWarehouse', [CurrentWarehouseController::class, 'index']);
 Route::post('/bulkStoreWarehouse', [CurrentWarehouseController::class, 'bulkStore']);
+Route::get('/productStocks', [ProductStockController::class, 'index']);
+Route::post('/bulkStoreProductStock', [ProductStockController::class, 'bulkStore']);

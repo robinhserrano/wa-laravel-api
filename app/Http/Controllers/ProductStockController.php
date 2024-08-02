@@ -25,7 +25,7 @@ class ProductStockController extends Controller
 
         foreach ($productList as $product) {
             $filteredProduct = Arr::only($product, $allowedProduct);
-            $existingProduct = ProductStock::where('display_name', $filteredProduct['display_name'])->first();
+            $existingProduct = ProductStock::where('display_name', $filteredProduct['display_name'])->where('warehouse_id', $filteredProduct['warehouse_id'])->first();
 
             if ($existingProduct) {
 
@@ -39,7 +39,9 @@ class ProductStockController extends Controller
         }
 
         if (!empty($newProducts)) {
-            ProductStock::insert($newProducts);
+            foreach ($newProducts as $product) {
+                ProductStock::create($product);
+            }
         }
     }
 }
