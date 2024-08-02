@@ -17,7 +17,7 @@ class ProductStockController extends Controller
     public function bulkStore(Request $request)
     {
         $allowedProduct = [
-            'display_name', 'categ_name', 'avg_cost', 'total_value', 'qty_available', 'free_qty', 'incoming_qty', 'outgoing_qty', 'virtual_available',
+            'display_name', 'categ_name', 'avg_cost', 'total_value', 'qty_available', 'free_qty', 'incoming_qty', 'outgoing_qty', 'virtual_available', 'warehouse_id',
         ];
 
         $productList = $request->all();
