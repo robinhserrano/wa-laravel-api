@@ -136,4 +136,10 @@ class UserController extends Controller
             return response()->json(['message' => 'Faild to update password'], 404);
         }
     }
+
+    public function aboveLevel2()
+    {
+        $users = User::where('access_level', '>', 2)->get();
+        return $users;
+    }
 }

@@ -69,3 +69,4 @@ Route::get('/currentWarehouse', [CurrentWarehouseController::class, 'index']);
 Route::post('/bulkStoreWarehouse', [CurrentWarehouseController::class, 'bulkStore']);
 Route::get('/productStocks', [ProductStockController::class, 'index']);
 Route::post('/bulkStoreProductStock', [ProductStockController::class, 'bulkStore']);
+Route::get('/users/above-level-2', [UserController::class, 'aboveLevel2']);
