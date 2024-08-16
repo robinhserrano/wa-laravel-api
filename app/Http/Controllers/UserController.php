@@ -137,7 +137,7 @@ class UserController extends Controller
         }
     }
 
-    public function aboveLevel2()
+    public function usersAboveLevel2()
     {
         $users = User::where('access_level', '>', 2)->get();
         return $users;
