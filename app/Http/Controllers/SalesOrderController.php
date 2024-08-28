@@ -164,11 +164,23 @@ class SalesOrderController extends Controller
     public function bulkStore(Request $request)
     {
         $allowedSalesOrder = [
-            'amount_to_invoice', 'amount_total', 'amount_untaxed', 'create_date',
-            'delivery_status', 'internal_note_display', 'name', 'partner_id_contact_address',
-            'partner_id_display_name', 'partner_id_phone', 'state', 'x_studio_commission_paid',
-            'x_studio_invoice_payment_status', 'x_studio_payment_type', 'x_studio_referrer_processed',
-            'x_studio_sales_rep_1', 'x_studio_sales_source'
+            'amount_to_invoice',
+            'amount_total',
+            'amount_untaxed',
+            'create_date',
+            'delivery_status',
+            'internal_note_display',
+            'name',
+            'partner_id_contact_address',
+            'partner_id_display_name',
+            'partner_id_phone',
+            'state',
+            'x_studio_commission_paid',
+            'x_studio_invoice_payment_status',
+            'x_studio_payment_type',
+            'x_studio_referrer_processed',
+            'x_studio_sales_rep_1',
+            'x_studio_sales_source'
         ];
 
         $salesOrders = [];
@@ -354,6 +366,7 @@ function saveOrUpdateOrderLines(array $orderData, ?int $salesOrderId = null): vo
 {
     $existingOrderLineProducts = [];
     $orderLinesToUpdate = [];
+    $incomingOrderLineProducts = [];
 
     // Extract incoming order line data
     $incomingOrderLines = [];
@@ -370,6 +383,7 @@ function saveOrUpdateOrderLines(array $orderData, ?int $salesOrderId = null): vo
             'invoiced' => $orderLineData['invoiced'] ?? null,
         ]);
         $incomingOrderLines[$index] = $filteredOrderLine;
+        $incomingOrderLineProducts[] = $filteredOrderLine->product;
     }
 
     // Find existing order lines
@@ -412,7 +426,7 @@ function saveOrUpdateOrderLines(array $orderData, ?int $salesOrderId = null): vo
 
     // Identify and delete order lines to be removed
     $existingOrderLineIdsToDelete = $existingOrderLines
-        ->whereNotIn('product', $existingOrderLineProducts)
+        ->whereNotIn('product', $incomingOrderLineProducts)
         ->pluck('id');
 
     if (!empty($existingOrderLineIdsToDelete)) {

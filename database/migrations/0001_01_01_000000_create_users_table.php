@@ -17,9 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->integer('access_level')->default(1);
-            $table->double('commission_split')->default(50.0); 
-            $table->unsignedBigInteger('sales_manager_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
