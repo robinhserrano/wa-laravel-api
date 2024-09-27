@@ -42,7 +42,7 @@ class UserController extends Controller
                 'commission_split' => 'required|integer|min:0|max:100',
                 'access_level' => 'required|integer|min:0|max:5',
                 'sales_manager_id' => 'nullable|integer',
-                'sales_rep_odoo_name' => '',
+                'sales_rep_display_name' => '',
                 // Add validation rules for other fields as needed
             ]);
             User::create(Arr::only($validatedData, $allowedData));
@@ -93,7 +93,7 @@ class UserController extends Controller
                 'sales_manager_id' => 'nullable|integer',
                 'self_gen' => '',
                 'company_lead' => '',
-                'sales_rep_odoo_name' => '',
+                'sales_rep_display_name' => '',
                 // Allow optional password update
                 // Add validation rules for other fields as needed
             ]);

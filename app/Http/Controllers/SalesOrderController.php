@@ -181,7 +181,7 @@ class SalesOrderController extends Controller
             'x_studio_referrer_processed',
             'x_studio_sales_rep_1',
             'x_studio_sales_source',
-            'sales_rep_odoo_name',
+            'sales_rep_display_name',
         ];
 
         $salesOrders = [];
